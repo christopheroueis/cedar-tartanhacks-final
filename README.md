@@ -1,8 +1,8 @@
-# ClimateCredit 🌿
+# Cedar 🌿
 
 > Climate-informed lending decisions with AI-powered data collection
 
-**ClimateCredit** is a mobile-first platform that helps Microfinance Institutions (MFIs) in developing countries make climate-smart lending decisions. By integrating real-time climate data, machine learning risk models, and AI-powered conversation transcription, loan officers can make more informed decisions that protect both borrowers and lenders from climate-related risks.
+**Cedar** is a mobile-first platform that helps Microfinance Institutions (MFIs) in developing countries make climate-smart lending decisions. By integrating real-time climate data, machine learning risk models, and AI-powered conversation transcription, loan officers can make more informed decisions that protect both borrowers and lenders from climate-related risks.
 
 ## 🎯 Problem Statement
 

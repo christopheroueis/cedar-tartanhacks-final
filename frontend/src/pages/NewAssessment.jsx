@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { assessmentsAPI } from '../services/api'
 import {
-    MapPin, DollarSign, Briefcase, Wheat, User, FileCheck,
-    ChevronDown, Navigation, Menu, LogOut, History as HistoryIcon,
-    LayoutDashboard, Loader2, AlertCircle, Mic, MicOff, Square,
-    Sparkles, PenLine, Check, X, Edit2, ChevronLeft
+    MapPin, DollarSign, Wheat, User, FileCheck,
+    ChevronDown, Navigation, Loader2, AlertCircle, Mic, MicOff, Square,
+    Sparkles, PenLine, Check, Edit2, ChevronLeft
 } from 'lucide-react'
 import ProgressBar from '../components/ProgressBar'
 import LocationDetection from '../components/LocationDetection'
@@ -19,7 +18,6 @@ const API_BASE = 'http://localhost:3001'
 export default function NewAssessment() {
     const { user, mfi, logout } = useAuth()
     const navigate = useNavigate()
-    const [menuOpen, setMenuOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [gpsLoading, setGpsLoading] = useState(false)
 
@@ -276,7 +274,7 @@ export default function NewAssessment() {
             if (result.success && result.assessment) {
                 sessionStorage.setItem(`assessment_${result.assessment.id}`, JSON.stringify(result.assessment))
                 setLoading(false)
-                navigate(`/results/${result.assessment.id}`)
+                navigate(`/app/results/${result.assessment.id}`)
                 return
             }
         } catch (error) {
@@ -293,7 +291,7 @@ export default function NewAssessment() {
             timestamp: new Date().toISOString()
         }))
         setLoading(false)
-        navigate(`/results/${assessmentId}`)
+        navigate(`/app/results/${assessmentId}`)
     }
 
     const handleModeSelect = (mode) => {
@@ -332,77 +330,19 @@ export default function NewAssessment() {
 
     // ============ RENDER SECTIONS ============
 
-    const renderHeader = () => (
-        <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-lg border-b border-slate-700/50">
-            <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                    {step !== 'mode-select' && (
-                        <button
-                            onClick={handleBack}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-800 text-slate-300 mr-1"
-                        >
-                            <ChevronLeft className="w-5 h-5" />
-                        </button>
-                    )}
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
-                        <FileCheck className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-semibold text-white">
-                            {step === 'mode-select' && 'New Assessment'}
-                            {step === 'manual-form' && 'Manual Entry'}
-                            {step === 'recording' && 'AI Assistant'}
-                            {step === 'review' && 'Review Data'}
-                        </h1>
-                        <p className="text-xs text-slate-400">{mfi?.name}</p>
-                    </div>
-                </div>
-
-                <button
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-800 text-slate-300"
-                >
-                    <Menu className="w-5 h-5" />
-                </button>
-            </div>
-
-            {menuOpen && (
-                <div className="absolute right-4 top-16 w-56 glass-card p-2 shadow-xl fade-in z-50">
-                    <div className="px-3 py-2 border-b border-slate-700 mb-2">
-                        <p className="text-sm font-medium text-white">{user?.name}</p>
-                        <p className="text-xs text-slate-400">{user?.role === 'manager' ? 'Manager' : 'Loan Officer'}</p>
-                    </div>
-
-                    {user?.role === 'manager' && (
-                        <Link
-                            to="/dashboard"
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-700/50 text-slate-300 text-sm"
-                            onClick={() => setMenuOpen(false)}
-                        >
-                            <LayoutDashboard className="w-4 h-4" />
-                            Dashboard
-                        </Link>
-                    )}
-
-                    <Link
-                        to="/history"
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-700/50 text-slate-300 text-sm"
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        <HistoryIcon className="w-4 h-4" />
-                        Assessment History
-                    </Link>
-
-                    <button
-                        onClick={() => { logout(); navigate('/login'); }}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/20 text-red-400 text-sm w-full"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
-                    </button>
-                </div>
-            )}
-        </header>
+    const stepLabel = step === 'manual-form' ? 'Manual Entry' : step === 'recording' ? 'AI Assistant' : step === 'review' ? 'Review Data' : null
+    const renderInFlowBar = () => step !== 'mode-select' && stepLabel && (
+        <div className="flex items-center gap-3 px-4 py-2 border-b border-white/5">
+            <button
+                type="button"
+                onClick={handleBack}
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-slate-300 hover:text-white"
+                aria-label="Back"
+            >
+                <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="text-sm font-medium text-slate-300">{stepLabel}</span>
+        </div>
     )
 
     const renderModeSelection = () => (
@@ -415,29 +355,27 @@ export default function NewAssessment() {
             {/* AI Assistant Option */}
             <button
                 onClick={() => handleModeSelect('ai')}
-                className="w-full p-6 rounded-2xl bg-gradient-to-br from-violet-600/20 to-purple-600/20 
-                         border-2 border-violet-500/50 hover:border-violet-400 
-                         transition-all duration-300 text-left group hover:scale-[1.02]"
+                className="w-full p-6 rounded-2xl bg-[#0A4D3C]/15 border-2 border-[#14B8A6]/40 hover:border-[#14B8A6]/60 
+                         transition-all duration-200 text-left"
             >
                 <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 
-                                  flex items-center justify-center flex-shrink-0">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#0A4D3C] to-[#14B8A6] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#0A4D3C]/30">
                         <Sparkles className="w-7 h-7 text-white" />
                     </div>
                     <div className="flex-1">
                         <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
                             AI Assistant
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/30 text-violet-300">Recommended</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-[#14B8A6]/20 text-[#14B8A6]">Recommended</span>
                         </h3>
                         <p className="text-sm text-slate-400 mb-3">
                             Record your conversation with the client. AI will transcribe and extract data automatically.
                         </p>
                         <div className="flex items-center gap-4 text-xs text-slate-500">
                             <span className="flex items-center gap-1">
-                                <Mic className="w-3 h-3" /> Voice Recording
+                                <Mic className="w-3 h-3" /> Voice recording
                             </span>
                             <span className="flex items-center gap-1">
-                                <Sparkles className="w-3 h-3" /> Auto-Extract
+                                <Sparkles className="w-3 h-3" /> Auto-extract
                             </span>
                         </div>
                     </div>
@@ -447,13 +385,11 @@ export default function NewAssessment() {
             {/* Manual Entry Option */}
             <button
                 onClick={() => handleModeSelect('manual')}
-                className="w-full p-6 rounded-2xl bg-slate-800/50 
-                         border-2 border-slate-700 hover:border-slate-500 
-                         transition-all duration-300 text-left group hover:scale-[1.02]"
+                className="w-full p-6 rounded-2xl bg-white/5 border-2 border-white/10 hover:border-white/20 
+                         transition-all duration-200 text-left"
             >
                 <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 
-                                  flex items-center justify-center flex-shrink-0">
+                    <div className="w-14 h-14 rounded-xl bg-slate-700/80 flex items-center justify-center flex-shrink-0">
                         <PenLine className="w-7 h-7 text-white" />
                     </div>
                     <div className="flex-1">
@@ -478,46 +414,44 @@ export default function NewAssessment() {
     const renderRecording = () => (
         <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
             {/* Recording Controls */}
-            <div className="card text-center py-8">
-                <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-300
+            <div className="card-cedar text-center py-8">
+                <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-200
                     ${isRecording
-                        ? 'bg-gradient-to-br from-red-500 to-rose-600 animate-pulse shadow-lg shadow-red-500/50'
-                        : 'bg-gradient-to-br from-violet-500 to-purple-600'}`}
+                        ? 'bg-red-500/90 animate-pulse shadow-lg shadow-red-500/30'
+                        : 'bg-gradient-to-br from-[#0A4D3C] to-[#14B8A6] shadow-lg shadow-[#0A4D3C]/30'}`}
                 >
                     {isRecording ? (
                         <Mic className="w-16 h-16 text-white" />
                     ) : (
-                        <MicOff className="w-16 h-16 text-white/70" />
+                        <MicOff className="w-16 h-16 text-white/80" />
                     )}
                 </div>
 
                 {!isRecording && !extracting && (
                     <button
+                        type="button"
                         onClick={startRecording}
-                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 
-                                 text-white font-semibold text-lg hover:from-violet-400 hover:to-purple-500
-                                 transition-all shadow-lg shadow-violet-500/30"
+                        className="btn-primary"
                     >
-                        Start Recording
+                        Start recording
                     </button>
                 )}
 
                 {isRecording && (
                     <button
+                        type="button"
                         onClick={stopRecording}
-                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 
-                                 text-white font-semibold text-lg hover:from-red-400 hover:to-rose-500
-                                 transition-all shadow-lg shadow-red-500/30 flex items-center gap-2 mx-auto"
+                        className="px-8 py-3 rounded-xl bg-red-500/90 hover:bg-red-500 text-white font-semibold flex items-center gap-2 mx-auto transition-colors"
                     >
                         <Square className="w-5 h-5" />
-                        Stop & Extract
+                        Stop & extract
                     </button>
                 )}
 
                 {extracting && (
-                    <div className="flex items-center justify-center gap-3 text-violet-400">
+                    <div className="flex items-center justify-center gap-3 text-[#14B8A6]">
                         <Loader2 className="w-6 h-6 animate-spin" />
-                        <span className="font-medium">AI is extracting data...</span>
+                        <span className="font-medium">Extracting data...</span>
                     </div>
                 )}
 
@@ -529,9 +463,9 @@ export default function NewAssessment() {
             </div>
 
             {/* Transcript Area - Editable */}
-            <div className="card">
+            <div className="card-cedar">
                 <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-teal-400 uppercase tracking-wider">
+                    <h3 className="text-sm font-semibold text-[#14B8A6] tracking-wide">
                         Transcript
                     </h3>
                     <span className="text-xs text-slate-500">
@@ -541,10 +475,8 @@ export default function NewAssessment() {
                 <textarea
                     value={transcript}
                     onChange={(e) => setTranscript(e.target.value)}
-                    placeholder="Speech will appear here... OR type/paste your conversation transcript manually"
-                    className="w-full min-h-[180px] p-4 rounded-xl bg-slate-800/50 border border-slate-700 
-                             text-slate-300 placeholder-slate-500 resize-none focus:border-violet-500 
-                             focus:ring-1 focus:ring-violet-500 transition-all"
+                    placeholder="Speech will appear here, or type/paste your conversation"
+                    className="input-cedar min-h-[180px] p-4 resize-none"
                 />
                 {interimTranscript && (
                     <p className="text-sm text-slate-500 mt-2 italic">{interimTranscript}</p>
@@ -554,20 +486,17 @@ export default function NewAssessment() {
             {/* Manual Extract Button */}
             {!isRecording && !extracting && transcript.trim().length > 0 && (
                 <button
+                    type="button"
                     onClick={extractDataFromTranscript}
-                    className="w-full py-4 bg-gradient-to-r from-violet-500 to-purple-600 
-                             hover:from-violet-400 hover:to-purple-500
-                             text-white font-bold text-lg rounded-2xl shadow-lg shadow-violet-500/30
-                             transition-all duration-200 flex items-center justify-center gap-2"
+                    className="btn-primary w-full py-4 text-lg"
                 >
                     <Sparkles className="w-6 h-6" />
-                    Extract Data with AI
+                    Extract data with AI
                 </button>
             )}
 
-            {/* Error Message */}
             {extractionError && (
-                <div className="p-4 rounded-xl bg-red-500/20 border border-red-500/30 flex items-start gap-3">
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                     <p className="text-sm text-red-300">{extractionError}</p>
                 </div>
@@ -591,10 +520,10 @@ export default function NewAssessment() {
 
     const renderReview = () => (
         <div className="px-4 py-6 max-w-lg mx-auto">
-            <div className="mb-6 p-4 rounded-xl bg-violet-500/20 border border-violet-500/30">
+            <div className="mb-6 p-4 rounded-xl bg-[#14B8A6]/10 border border-[#14B8A6]/30">
                 <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-5 h-5 text-violet-400" />
-                    <span className="font-semibold text-violet-300">AI Extracted Data</span>
+                    <Sparkles className="w-5 h-5 text-[#14B8A6]" />
+                    <span className="font-semibold text-[#14B8A6]">AI extracted data</span>
                 </div>
                 <p className="text-sm text-slate-400">
                     Review and edit the extracted information before proceeding
@@ -603,19 +532,17 @@ export default function NewAssessment() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Location - Always required */}
-                <section className="card space-y-4">
-                    <h3 className="text-sm font-semibold text-teal-400 uppercase tracking-wider flex items-center gap-2">
+                <section className="card-cedar space-y-4">
+                    <h3 className="text-sm font-semibold text-[#14B8A6] tracking-wide flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        Client Location
+                        Client location
                     </h3>
 
                     <button
                         type="button"
                         onClick={detectLocation}
                         disabled={gpsLoading}
-                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl 
-                                 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600
-                                 text-white font-medium transition-all"
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0EA5E9]/20 border border-[#0EA5E9]/40 text-[#0EA5E9] font-medium hover:bg-[#0EA5E9]/30 transition-colors"
                     >
                         {gpsLoading ? (
                             <>
@@ -631,8 +558,8 @@ export default function NewAssessment() {
                     </button>
 
                     {formData.locationName && (
-                        <div className="p-3 rounded-lg bg-teal-500/10 border border-teal-500/30">
-                            <p className="text-sm text-teal-300 font-medium">{formData.locationName}</p>
+                        <div className="p-3 rounded-lg bg-[#14B8A6]/10 border border-[#14B8A6]/30">
+                            <p className="text-sm text-[#14B8A6] font-medium">{formData.locationName}</p>
                             <p className="text-xs text-slate-400 mt-1">
                                 {formData.latitude}, {formData.longitude}
                             </p>
@@ -641,10 +568,10 @@ export default function NewAssessment() {
                 </section>
 
                 {/* Extracted Fields with Confidence */}
-                <section className="card space-y-4">
-                    <h3 className="text-sm font-semibold text-violet-400 uppercase tracking-wider flex items-center gap-2">
+                <section className="card-cedar space-y-4">
+                    <h3 className="text-sm font-semibold text-[#14B8A6] tracking-wide flex items-center gap-2">
                         <Sparkles className="w-4 h-4" />
-                        Extracted Information
+                        Extracted information
                     </h3>
 
                     {/* Client Name */}
@@ -730,9 +657,9 @@ export default function NewAssessment() {
                                     key={purpose.id}
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, loanPurpose: purpose.id }))}
-                                    className={`p-3 rounded-xl border-2 text-left transition-all ${formData.loanPurpose === purpose.id
-                                        ? 'border-teal-500 bg-teal-500/20'
-                                        : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                                    className={`p-3 rounded-xl border-2 text-left transition-colors ${formData.loanPurpose === purpose.id
+                                        ? 'border-[#14B8A6] bg-[#14B8A6]/15'
+                                        : 'border-white/10 bg-white/5 hover:border-white/15'
                                         }`}
                                 >
                                     <span className="text-xl">{purpose.icon}</span>
@@ -786,7 +713,7 @@ export default function NewAssessment() {
                             onChange={handleChange}
                             min="0"
                             max="100"
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-500"
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#14B8A6]"
                         />
                     </div>
                 </section>
@@ -795,20 +722,17 @@ export default function NewAssessment() {
                 <button
                     type="submit"
                     disabled={loading || !formData.latitude || !formData.loanPurpose}
-                    className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400
-                           text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/30
-                           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-                           active:scale-[0.98] flex items-center justify-center gap-2"
+                    className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {loading ? (
                         <>
                             <Loader2 className="w-6 h-6 animate-spin" />
-                            Analyzing Climate Risk...
+                            Analyzing climate risk...
                         </>
                     ) : (
                         <>
                             <Check className="w-6 h-6" />
-                            Confirm & Assess Risk
+                            Confirm & assess risk
                         </>
                     )}
                 </button>
@@ -820,19 +744,17 @@ export default function NewAssessment() {
         <main className="px-4 py-6">
             <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto">
                 {/* Location Section */}
-                <section className="card space-y-4">
-                    <h3 className="text-sm font-semibold text-teal-400 uppercase tracking-wider flex items-center gap-2">
+                <section className="card-cedar space-y-4">
+                    <h3 className="text-sm font-semibold text-[#14B8A6] tracking-wide flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        Client Location
+                        Client location
                     </h3>
 
                     <button
                         type="button"
                         onClick={detectLocation}
                         disabled={gpsLoading}
-                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl 
-                                 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600
-                                 text-white font-medium transition-all"
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0EA5E9]/20 border border-[#0EA5E9]/40 text-[#0EA5E9] font-medium hover:bg-[#0EA5E9]/30 transition-colors"
                     >
                         {gpsLoading ? (
                             <>
@@ -848,8 +770,8 @@ export default function NewAssessment() {
                     </button>
 
                     {formData.locationName && (
-                        <div className="p-3 rounded-lg bg-teal-500/10 border border-teal-500/30 fade-in">
-                            <p className="text-sm text-teal-300 font-medium">{formData.locationName}</p>
+                        <div className="p-3 rounded-lg bg-[#14B8A6]/10 border border-[#14B8A6]/30 animate-fade-in-up">
+                            <p className="text-sm text-[#14B8A6] font-medium">{formData.locationName}</p>
                             <p className="text-xs text-slate-400 mt-1">
                                 {formData.latitude}, {formData.longitude}
                             </p>
@@ -887,10 +809,10 @@ export default function NewAssessment() {
                 </section>
 
                 {/* Loan Details Section */}
-                <section className="card space-y-4">
-                    <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                <section className="card-cedar space-y-4">
+                    <h3 className="text-sm font-semibold text-[#F59E0B] tracking-wide flex items-center gap-2">
                         <DollarSign className="w-4 h-4" />
-                        Loan Details
+                        Loan details
                     </h3>
 
                     <div>
@@ -919,9 +841,9 @@ export default function NewAssessment() {
                                     key={purpose.id}
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, loanPurpose: purpose.id }))}
-                                    className={`p-3 rounded-xl border-2 text-left transition-all ${formData.loanPurpose === purpose.id
-                                        ? 'border-teal-500 bg-teal-500/20'
-                                        : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                                    className={`p-3 rounded-xl border-2 text-left transition-colors ${formData.loanPurpose === purpose.id
+                                        ? 'border-[#14B8A6] bg-[#14B8A6]/15'
+                                        : 'border-white/10 bg-white/5 hover:border-white/15'
                                         }`}
                                 >
                                     <span className="text-xl">{purpose.icon}</span>
@@ -932,9 +854,9 @@ export default function NewAssessment() {
                     </div>
 
                     {formData.loanPurpose === 'agriculture' && (
-                        <div className="fade-in">
+                        <div className="animate-fade-in-up">
                             <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
-                                <Wheat className="w-4 h-4 text-amber-400" />
+                                <Wheat className="w-4 h-4 text-[#F59E0B]" />
                                 Crop Type
                             </label>
                             <div className="relative">
@@ -957,10 +879,10 @@ export default function NewAssessment() {
                 </section>
 
                 {/* Client Info Section */}
-                <section className="card space-y-4">
-                    <h3 className="text-sm font-semibold text-violet-400 uppercase tracking-wider flex items-center gap-2">
+                <section className="card-cedar space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-300 tracking-wide flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        Client Information
+                        Client information
                     </h3>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1003,7 +925,7 @@ export default function NewAssessment() {
                             onChange={handleChange}
                             min="0"
                             max="100"
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-500"
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#14B8A6]"
                         />
                         <div className="flex justify-between text-xs text-slate-500 mt-1">
                             <span>Poor</span>
@@ -1016,20 +938,17 @@ export default function NewAssessment() {
                 <button
                     type="submit"
                     disabled={loading || !formData.latitude || !formData.loanPurpose}
-                    className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400
-                           text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/30
-                           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-                           active:scale-[0.98] flex items-center justify-center gap-2"
+                    className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {loading ? (
                         <>
                             <Loader2 className="w-6 h-6 animate-spin" />
-                            Analyzing Climate Risk...
+                            Analyzing climate risk...
                         </>
                     ) : (
                         <>
                             <FileCheck className="w-6 h-6" />
-                            Assess Risk
+                            Assess risk
                         </>
                     )}
                 </button>
@@ -1052,7 +971,7 @@ export default function NewAssessment() {
             )}
 
             {/* Regular header for mode-select and data entry steps */}
-            {(step === 'mode-select' || step === 'manual-form' || step === 'recording' || step === 'review') && renderHeader()}
+            {renderInFlowBar()}
 
             {step === 'mode-select' && renderModeSelection()}
             {step === 'location-detect' && <LocationDetection onLocationConfirmed={handleLocationConfirmed} />}

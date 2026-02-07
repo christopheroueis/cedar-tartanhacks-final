@@ -72,44 +72,39 @@ export default function LocationDetection({ onLocationConfirmed }) {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 flex items-center justify-center p-4 pt-24">
+        <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 pt-24">
             <div className="w-full max-w-4xl">
-                {/* Header */}
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold text-white mb-4">
-                        📍 Where is the loan applicant located?
+                <div className="text-center mb-10">
+                    <h1 className="text-2xl font-semibold text-white mb-2">
+                        Where is the loan applicant located?
                     </h1>
-                    <p className="text-slate-300 text-lg">
+                    <p className="text-slate-400">
                         Choose how you'd like to provide the location
                     </p>
                 </div>
 
                 {!location ? (
                     <div className="grid md:grid-cols-2 gap-6">
-                        {/* GPS Detection Option */}
-                        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+                        <div className="card-cedar p-8">
                             <div className="flex flex-col items-center text-center gap-6">
-                                <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <div className="w-20 h-20 bg-gradient-to-br from-[#0A4D3C] to-[#14B8A6] rounded-full flex items-center justify-center shadow-lg shadow-[#0A4D3C]/30">
                                     {loading && mode === 'gps' ? (
                                         <Loader2 className="w-10 h-10 text-white animate-spin" />
                                     ) : (
-                                        <Navigation className="w-10 h-10 text-white animate-pulse" />
+                                        <Navigation className="w-10 h-10 text-white" />
                                     )}
                                 </div>
-
                                 <div>
-                                    <h3 className="text-2xl font-bold text-white mb-2">Use GPS</h3>
-                                    <p className="text-slate-300">
-                                        Automatically detect current location
-                                    </p>
+                                    <h3 className="text-xl font-semibold text-white mb-2">Use GPS</h3>
+                                    <p className="text-slate-400">Automatically detect current location</p>
                                 </div>
-
                                 <button
+                                    type="button"
                                     onClick={handleGPSDetect}
                                     disabled={loading}
-                                    className="w-full bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-violet-400 hover:to-purple-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-violet-500/50"
+                                    className="btn-primary w-full"
                                 >
-                                    {loading && mode === 'gps' ? 'Detecting...' : 'Detect Location'}
+                                    {loading && mode === 'gps' ? 'Detecting...' : 'Detect location'}
                                 </button>
 
                                 {error && mode === 'gps' && (
@@ -121,52 +116,41 @@ export default function LocationDetection({ onLocationConfirmed }) {
                             </div>
                         </div>
 
-                        {/* Manual Search Option */}
-                        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+                        <div className="card-cedar p-8">
                             <div className="flex flex-col gap-6">
-                                <div className="flex flex-col items-center text-center gap-6">
-                                    <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full flex items-center justify-center">
-                                        <Search className="w-10 h-10 text-white" />
+                                <div className="flex flex-col items-center text-center gap-4">
+                                    <div className="w-20 h-20 bg-[#0EA5E9]/20 border border-[#0EA5E9]/40 rounded-full flex items-center justify-center">
+                                        <Search className="w-10 h-10 text-[#0EA5E9]" />
                                     </div>
-
                                     <div>
-                                        <h3 className="text-2xl font-bold text-white mb-2">Enter Address</h3>
-                                        <p className="text-slate-300">
-                                            Search for village, city, or district
-                                        </p>
+                                        <h3 className="text-xl font-semibold text-white mb-2">Enter address</h3>
+                                        <p className="text-slate-400">Search for village, city, or district</p>
                                     </div>
                                 </div>
-
-                                {/* Search Input */}
                                 <div className="relative">
                                     <input
                                         type="text"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         placeholder="Type to search..."
-                                        className="w-full bg-white/10 border border-white/30 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                        className="input-cedar pr-10"
                                     />
                                     {searchLoading && (
-                                        <Loader2 className="absolute right-3 top-3 w-5 h-5 text-slate-400 animate-spin" />
+                                        <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 animate-spin" />
                                     )}
                                 </div>
-
-                                {/* Suggestions Dropdown */}
                                 {suggestions.length > 0 && (
-                                    <div className="bg-white/10 border border-white/20 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+                                    <div className="border border-white/10 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
                                         {suggestions.map((suggestion) => (
                                             <button
                                                 key={suggestion.id}
+                                                type="button"
                                                 onClick={() => handleSelectAddress(suggestion)}
-                                                className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/10 last:border-b-0"
+                                                className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-b-0"
                                             >
                                                 <div className="flex items-start gap-3">
-                                                    <MapPin className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
-                                                    <div>
-                                                        <p className="text-white font-medium text-sm">
-                                                            {suggestion.formatted}
-                                                        </p>
-                                                    </div>
+                                                    <MapPin className="w-5 h-5 text-[#14B8A6] flex-shrink-0 mt-0.5" />
+                                                    <p className="text-white font-medium text-sm">{suggestion.formatted}</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -176,54 +160,40 @@ export default function LocationDetection({ onLocationConfirmed }) {
                         </div>
                     </div>
                 ) : (
-                    /* Location Confirmation Card */
-                    <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 max-w-2xl mx-auto">
+                    <div className="card-cedar p-8 max-w-2xl mx-auto">
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-                                <CheckCircle className="w-8 h-8 text-white" />
+                            <div className="w-14 h-14 bg-[#10B981] rounded-full flex items-center justify-center">
+                                <CheckCircle className="w-7 h-7 text-white" />
                             </div>
                             <div>
-                                <h3 className="text-2xl font-bold text-white">Location Selected</h3>
-                                <p className="text-slate-300">Please confirm this is correct</p>
+                                <h3 className="text-xl font-semibold text-white">Location selected</h3>
+                                <p className="text-slate-400 text-sm">Please confirm this is correct</p>
                             </div>
                         </div>
-
-                        <div className="bg-white/5 rounded-xl p-6 mb-6">
-                            <div className="flex items-start gap-3 mb-4">
-                                <MapPin className="w-6 h-6 text-teal-400 flex-shrink-0" />
+                        <div className="bg-white/5 rounded-xl p-5 mb-6">
+                            <div className="flex items-start gap-3">
+                                <MapPin className="w-5 h-5 text-[#14B8A6] flex-shrink-0 mt-0.5" />
                                 <div>
-                                    <p className="text-white font-medium text-lg mb-2">
-                                        {location.formatted}
-                                    </p>
+                                    <p className="text-white font-medium mb-1">{location.formatted}</p>
                                     <p className="text-slate-400 text-sm">
-                                        Coordinates: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                                        {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
                                     </p>
                                     {location.accuracy && (
-                                        <p className="text-slate-400 text-sm">
-                                            Accuracy: ±{Math.round(location.accuracy)}m
-                                        </p>
+                                        <p className="text-slate-400 text-sm">Accuracy: ±{Math.round(location.accuracy)}m</p>
                                     )}
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex gap-4">
+                        <div className="flex gap-3">
                             <button
-                                onClick={() => {
-                                    setLocation(null)
-                                    setMode(null)
-                                    setSearchQuery('')
-                                    setError(null)
-                                }}
-                                className="flex-1 bg-white/10 border border-white/20 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300"
+                                type="button"
+                                onClick={() => { setLocation(null); setMode(null); setSearchQuery(''); setError(null); }}
+                                className="btn-secondary flex-1"
                             >
-                                Change Location
+                                Change location
                             </button>
-                            <button
-                                onClick={handleConfirm}
-                                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-green-400 hover:to-emerald-500 transition-all duration-300 shadow-lg hover:shadow-green-500/50"
-                            >
-                                Confirm & Continue
+                            <button type="button" onClick={handleConfirm} className="btn-primary flex-1">
+                                Confirm & continue
                             </button>
                         </div>
                     </div>

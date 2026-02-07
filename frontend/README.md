@@ -1,4 +1,23 @@
-# React + Vite
+# Cedar — Frontend
+
+Climate-informed lending platform. React + Vite.
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open **http://localhost:5173/** (or the port Vite prints). You should see the **Welcome** page (video background, Cedar logo, “Click to start”). If you still see the old UI, do a **hard refresh** (Mac: Cmd+Shift+R, Windows: Ctrl+Shift+R) or stop and run `npm run dev` again.
+
+- **/** = Welcome (logo + video + Click to start)
+- **/login** = Sign in (after “Click to start”)
+- **/app** = Main app (after login)
+
+---
+
+## React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

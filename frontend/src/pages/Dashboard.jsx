@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-    ArrowLeft, TrendingUp, TrendingDown, MapPin, Users,
-    FileCheck, AlertTriangle, Filter, RefreshCw, Download,
-    ChevronRight, Building2, Globe
+    TrendingUp, TrendingDown, MapPin, Users,
+    FileCheck, AlertTriangle, RefreshCw, Download,
+    Building2, Globe
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
 
@@ -51,22 +51,21 @@ const generateDashboardData = (mfiId) => {
     }
 }
 
-// Stat Card Component
 function StatCard({ icon: Icon, label, value, subValue, trend, trendUp }) {
     return (
-        <div className="card">
+        <div className="card-cedar">
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-xs text-slate-400 uppercase tracking-wider">{label}</p>
-                    <p className="text-2xl font-bold text-white mt-1">{value}</p>
+                    <p className="text-xs text-slate-400 tracking-wide">{label}</p>
+                    <p className="text-2xl font-bold text-white mt-1 font-mono-nums">{value}</p>
                     {subValue && <p className="text-sm text-slate-400">{subValue}</p>}
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-teal-400" />
+                <div className="w-10 h-10 rounded-xl bg-[#14B8A6]/15 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-[#14B8A6]" />
                 </div>
             </div>
             {trend !== undefined && (
-                <div className={`flex items-center gap-1 mt-2 text-sm ${trendUp ? 'text-red-400' : 'text-emerald-400'}`}>
+                <div className={`flex items-center gap-1 mt-2 text-sm ${trendUp ? 'text-red-400' : 'text-[#10B981]'}`}>
                     {trendUp ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                     <span>{Math.abs(trend).toFixed(1)}% vs last month</span>
                 </div>
@@ -91,47 +90,14 @@ export default function Dashboard() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p className="text-slate-400 mt-4">Loading dashboard...</p>
-                </div>
+            <div className="min-h-[60vh] flex items-center justify-center px-4">
+                <div className="skeleton-cedar w-12 h-12 rounded-full" />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen pb-8">
-            {/* Header */}
-            <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-lg border-b border-slate-700/50">
-                <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => navigate('/')}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-800 text-slate-300"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <div>
-                            <h1 className="text-lg font-semibold text-white">Portfolio Dashboard</h1>
-                            <p className="text-xs text-slate-400 flex items-center gap-1">
-                                <Building2 className="w-3 h-3" />
-                                {mfi?.name}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:text-white">
-                            <RefreshCw className="w-5 h-5" />
-                        </button>
-                        <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:text-white">
-                            <Download className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
-            </header>
-
+        <div className="pb-8">
             <main className="px-4 py-6 space-y-6">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4">
@@ -163,8 +129,8 @@ export default function Dashboard() {
                 </div>
 
                 {/* Portfolio Risk Distribution */}
-                <div className="card">
-                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Portfolio Risk Distribution</h3>
+                <div className="card-cedar">
+                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Portfolio risk distribution</h3>
                     <div className="flex items-center gap-4">
                         <div className="w-32 h-32">
                             <ResponsiveContainer width="100%" height="100%">
@@ -198,8 +164,8 @@ export default function Dashboard() {
                 </div>
 
                 {/* Monthly Trend */}
-                <div className="card">
-                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Monthly Assessments</h3>
+                <div className="card-cedar">
+                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Monthly assessments</h3>
                     <div className="h-40">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data.monthlyTrend}>
@@ -208,19 +174,19 @@ export default function Dashboard() {
                                 <Tooltip
                                     contentStyle={{
                                         backgroundColor: '#1e293b',
-                                        border: '1px solid #334155',
+                                        border: '1px solid rgba(255,255,255,0.08)',
                                         borderRadius: '8px'
                                     }}
                                 />
-                                <Bar dataKey="loans" fill="#14b8a6" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="loans" fill="#14B8A6" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
                 {/* Regional Risk Heatmap */}
-                <div className="card">
-                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Regional Climate Risk</h3>
+                <div className="card-cedar">
+                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Regional climate risk</h3>
                     <div className="space-y-3">
                         {data.regionRisks.map((region, i) => (
                             <div key={i} className="flex items-center gap-4">
@@ -258,18 +224,18 @@ export default function Dashboard() {
                 </div>
 
                 {/* High Risk Loans */}
-                <div className="card">
+                <div className="card-cedar">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-slate-400">High Risk Loans</h3>
-                        <Link to="/history" className="text-xs text-teal-400 hover:text-teal-300">
-                            View All
+                        <h3 className="text-sm font-semibold text-slate-400">High risk loans</h3>
+                        <Link to="/app/history" className="text-xs text-[#14B8A6] hover:text-[#14B8A6]/80">
+                            View all
                         </Link>
                     </div>
                     <div className="space-y-3">
                         {data.recentHighRisk.map((loan) => (
                             <div
                                 key={loan.id}
-                                className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-colors cursor-pointer"
+                                className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 transition-colors cursor-pointer"
                             >
                                 <div>
                                     <p className="text-sm font-medium text-white">{loan.client}</p>

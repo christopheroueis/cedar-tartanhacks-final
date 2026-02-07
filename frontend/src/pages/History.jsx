@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-    ArrowLeft, Search, Filter, MapPin, DollarSign, Calendar,
-    CheckCircle, AlertTriangle, XCircle, ChevronRight, SlidersHorizontal
+    Search, MapPin, DollarSign,
+    CheckCircle, AlertTriangle, XCircle, SlidersHorizontal
 } from 'lucide-react'
 
 // Mock historical assessments
@@ -111,91 +111,71 @@ export default function History() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="min-h-[60vh] flex items-center justify-center px-4">
+                <div className="skeleton-cedar w-12 h-12 rounded-full" />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen pb-8">
-            {/* Header */}
-            <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-lg border-b border-slate-700/50">
-                <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => navigate('/')}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-800 text-slate-300"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <div>
-                            <h1 className="text-lg font-semibold text-white">Assessment History</h1>
-                            <p className="text-xs text-slate-400">{stats.total} assessments</p>
-                        </div>
-                    </div>
-
+        <div className="pb-24">
+            {/* Search + Filters */}
+            <div className="px-4 py-3 space-y-3 border-b border-white/5">
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="Search by client or location..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="input-cedar pl-12"
+                    />
+                </div>
+                <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-400">{stats.total} assessments</span>
                     <button
+                        type="button"
                         onClick={() => setShowFilters(!showFilters)}
-                        className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${showFilters ? 'bg-teal-500 text-white' : 'bg-slate-800 text-slate-400'
-                            }`}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${showFilters ? 'bg-[#14B8A6] text-white' : 'bg-white/5 text-slate-400'}`}
                     >
-                        <SlidersHorizontal className="w-5 h-5" />
+                        <SlidersHorizontal className="w-4 h-4 inline mr-1.5 align-middle" />
+                        Filters
                     </button>
                 </div>
-
-                {/* Search Bar */}
-                <div className="px-4 pb-3">
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Search by client or location..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 text-sm"
-                        />
-                    </div>
-                </div>
-
-                {/* Filter Pills */}
                 {showFilters && (
-                    <div className="px-4 pb-3 fade-in">
-                        <div className="flex gap-2 overflow-x-auto pb-1">
-                            <button
-                                onClick={() => setFilterStatus('all')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'all' ? 'bg-teal-500 text-white' : 'bg-slate-700 text-slate-300'
-                                    }`}
-                            >
-                                All ({stats.total})
-                            </button>
-                            <button
-                                onClick={() => setFilterStatus('approved')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'approved' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-300'
-                                    }`}
-                            >
-                                Approved ({stats.approved})
-                            </button>
-                            <button
-                                onClick={() => setFilterStatus('caution')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'caution' ? 'bg-amber-500 text-white' : 'bg-slate-700 text-slate-300'
-                                    }`}
-                            >
-                                Caution ({stats.caution})
-                            </button>
-                            <button
-                                onClick={() => setFilterStatus('deferred')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'deferred' ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-300'
-                                    }`}
-                            >
-                                Deferred ({stats.deferred})
-                            </button>
-                        </div>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                        <button
+                            type="button"
+                            onClick={() => setFilterStatus('all')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'all' ? 'bg-[#14B8A6] text-white' : 'bg-white/10 text-slate-300'}`}
+                        >
+                            All ({stats.total})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setFilterStatus('approved')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'approved' ? 'bg-[#10B981] text-white' : 'bg-white/10 text-slate-300'}`}
+                        >
+                            Approved ({stats.approved})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setFilterStatus('caution')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'caution' ? 'bg-[#F59E0B] text-white' : 'bg-white/10 text-slate-300'}`}
+                        >
+                            Caution ({stats.caution})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setFilterStatus('deferred')}
+                            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === 'deferred' ? 'bg-[#DC2626] text-white' : 'bg-white/10 text-slate-300'}`}
+                        >
+                            Deferred ({stats.deferred})
+                        </button>
                     </div>
                 )}
-            </header>
+            </div>
 
-            {/* Assessments List */}
             <main className="px-4 py-4">
                 {filteredAssessments.length === 0 ? (
                     <div className="text-center py-12">
@@ -212,10 +192,7 @@ export default function History() {
                             return (
                                 <div
                                     key={assessment.id}
-                                    className="card p-4 hover:bg-slate-700/50 transition-colors cursor-pointer active:scale-[0.98]"
-                                    onClick={() => {
-                                        // In production, navigate to assessment details
-                                    }}
+                                    className="card-cedar p-4 hover:bg-white/5 transition-colors cursor-pointer"
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
@@ -257,10 +234,8 @@ export default function History() {
 
             {/* FAB - New Assessment */}
             <Link
-                to="/"
-                className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-teal-500 to-emerald-500 
-                   rounded-full shadow-lg shadow-teal-500/40 flex items-center justify-center
-                   text-white text-2xl font-bold hover:scale-110 transition-transform"
+                to="/app"
+                className="fixed bottom-24 right-4 md:bottom-8 md:right-8 w-14 h-14 rounded-full bg-gradient-to-br from-[#0A4D3C] to-[#14B8A6] shadow-lg shadow-[#0A4D3C]/40 flex items-center justify-center text-white text-2xl font-bold hover:shadow-[#0A4D3C]/50 transition-shadow"
             >
                 +
             </Link>

@@ -5,6 +5,7 @@ import NewAssessment from './pages/NewAssessment'
 import RiskResults from './pages/RiskResults'
 import Dashboard from './pages/Dashboard'
 import History from './pages/History'
+import ComponentShowcase from './pages/ComponentShowcase'
 
 // Protected route wrapper
 function ProtectedRoute({ children }) {
@@ -31,6 +32,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/showcase" element={<ComponentShowcase />} />
       <Route path="/" element={
         <ProtectedRoute>
           <NewAssessment />

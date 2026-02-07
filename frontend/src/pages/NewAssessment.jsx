@@ -8,6 +8,10 @@ import {
     LayoutDashboard, Loader2, AlertCircle, Mic, MicOff, Square,
     Sparkles, PenLine, Check, X, Edit2, ChevronLeft
 } from 'lucide-react'
+import ProgressBar from '../components/ProgressBar'
+import LocationDetection from '../components/LocationDetection'
+import LoadingAnimation from '../components/LoadingAnimation'
+import { formatLocationForBackend } from '../services/locationService'
 
 // API base URL
 const API_BASE = 'http://localhost:3001'
@@ -20,8 +24,11 @@ export default function NewAssessment() {
     const [gpsLoading, setGpsLoading] = useState(false)
 
     // Multi-step flow state
-    const [step, setStep] = useState('mode-select') // 'mode-select' | 'manual-form' | 'recording' | 'review'
+    const [step, setStep] = useState('mode-select') // 'mode-select' | 'location-detect' | 'loading' | 'manual-form' | 'recording' | 'review'
     const [entryMode, setEntryMode] = useState(null) // 'manual' | 'ai'
+
+    // Location state
+    const [location, setLocation] = useState(null)
 
     // Recording state
     const [isRecording, setIsRecording] = useState(false)
@@ -291,7 +298,23 @@ export default function NewAssessment() {
 
     const handleModeSelect = (mode) => {
         setEntryMode(mode)
-        if (mode === 'manual') {
+        setStep('location-detect')
+    }
+
+    const handleLocationConfirmed = (detectedLocation) => {
+        setLocation(detectedLocation)
+        // Update form data with location
+        setFormData(prev => ({
+            ...prev,
+            latitude: detectedLocation.lat.toString(),
+            longitude: detectedLocation.lng.toString(),
+            locationName: detectedLocation.formatted
+        }))
+        setStep('loading')
+    }
+
+    const handleLoadingComplete = () => {
+        if (entryMode === 'manual') {
             setStep('manual-form')
         } else {
             setStep('recording')
@@ -1016,9 +1039,24 @@ export default function NewAssessment() {
 
     return (
         <div className="min-h-screen pb-24">
-            {renderHeader()}
+            {/* Progress Bar - shown for all steps except mode-select */}
+            {step !== 'mode-select' && (
+                <ProgressBar
+                    currentStep={
+                        step === 'location-detect' ? 'location' :
+                            step === 'loading' ? 'data-entry' :
+                                (step === 'manual-form' || step === 'recording' || step === 'review') ? 'data-entry' :
+                                    'assessment'
+                    }
+                />
+            )}
+
+            {/* Regular header for mode-select and data entry steps */}
+            {(step === 'mode-select' || step === 'manual-form' || step === 'recording' || step === 'review') && renderHeader()}
 
             {step === 'mode-select' && renderModeSelection()}
+            {step === 'location-detect' && <LocationDetection onLocationConfirmed={handleLocationConfirmed} />}
+            {step === 'loading' && <LoadingAnimation onComplete={handleLoadingComplete} minimumDuration={6000} />}
             {step === 'manual-form' && renderManualForm()}
             {step === 'recording' && renderRecording()}
             {step === 'review' && renderReview()}

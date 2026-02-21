@@ -12,8 +12,8 @@ import LocationDetection from '../components/LocationDetection'
 import LoadingAnimation from '../components/LoadingAnimation'
 import { formatLocationForBackend } from '../services/locationService'
 
-// API base URL
-const API_BASE = 'http://localhost:3001'
+// API base URL — empty string = same-origin (works on Vercel)
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function NewAssessment() {
     const { user, mfi, logout } = useAuth()

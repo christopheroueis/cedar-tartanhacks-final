@@ -18,7 +18,22 @@ const PORT = process.env.PORT || 3001
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, curl, serverless)
+        if (!origin) return callback(null, true)
+        const allowed = [
+            'http://localhost:5173',
+            'http://localhost:5178',
+            'http://localhost:3000',
+            'http://127.0.0.1:5173',
+            'http://127.0.0.1:5178'
+        ]
+        // Allow any Vercel preview/prod URL
+        if (origin.endsWith('.vercel.app') || allowed.includes(origin)) {
+            return callback(null, true)
+        }
+        callback(null, true) // permissive for demo
+    },
     credentials: true
 }))
 app.use(express.json())

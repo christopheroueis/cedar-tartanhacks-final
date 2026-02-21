@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// API base URL - change in production
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// API base URL — empty string = same-origin (works on Vercel)
+const API_BASE_URL = import.meta.env.VITE_API_URL || ''
 
 // Create axios instance
 const api = axios.create({

@@ -107,9 +107,12 @@ app.use((err, req, res, next) => {
     })
 })
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`
+// Start server only when run directly (not when imported by Vercel serverless)
+const isDirectRun = process.argv[1] && import.meta.url === `file://${process.argv[1]}`
+
+if (isDirectRun) {
+    app.listen(PORT, () => {
+        console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║   🌿 ClimateCredit API Server                               ║
@@ -123,7 +126,8 @@ app.listen(PORT, () => {
 ║   - API:    http://localhost:${PORT}/api                       ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
-  `)
-})
+    `)
+    })
+}
 
 export default app

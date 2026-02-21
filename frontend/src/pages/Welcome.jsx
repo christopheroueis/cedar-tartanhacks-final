@@ -1,175 +1,130 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { useRef, useEffect, useState } from 'react'
 
-const logoContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.08, delayChildren: 0.25 }
-  }
-}
-
-const logoItem = {
-  hidden: { opacity: 0, scale: 0.92, y: 20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
-  }
-}
-
-const floatAnimation = {
-  y: [0, -8, 0],
-  transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
-}
-
-const buttonVariants = {
-  hidden: { opacity: 0, y: 28 },
-  visible: {
+const fadeIn = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 1, duration: 0.55, ease: [0.22, 1, 0.36, 1] }
-  },
-  tap: { scale: 0.97 },
-  hover: { scale: 1.03, y: -2 }
+    transition: { delay: i * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+  })
 }
 
 export default function Welcome() {
   const navigate = useNavigate()
-  const videoRef = useRef(null)
-  const [videoReady, setVideoReady] = useState(false)
-  const [reduceMotion, setReduceMotion] = useState(false)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduceMotion(mq.matches)
-    const handler = () => setReduceMotion(mq.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-
-  useEffect(() => {
-    const v = videoRef.current
-    if (!v) return
-    const onCanPlay = () => setVideoReady(true)
-    v.addEventListener('canplay', onCanPlay)
-    v.play().catch(() => {})
-    return () => v.removeEventListener('canplay', onCanPlay)
-  }, [])
-
-  const handleStart = () => {
-    navigate('/login')
-  }
 
   return (
-    <div className="welcome-page fixed inset-0 overflow-hidden bg-[var(--color-bg)]">
-      {/* Video background — optimized contrast and vignette */}
-      <div className="absolute inset-0">
-        <video
-          ref={videoRef}
-          src="/background.mp4"
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{
-            filter: 'brightness(0.32) saturate(0.85) contrast(1.05)',
-            opacity: videoReady ? 1 : 0
-          }}
-        />
-        {/* Layered overlays: gradient + vignette for depth */}
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/80"
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0 welcome-vignette"
-          aria-hidden
-        />
+    <div className="min-h-screen topo-bg relative overflow-hidden">
+      {/* Topographic line overlay */}
+      <div className="absolute inset-0 topo-lines opacity-60" aria-hidden />
+
+      {/* Subtle heatmap-style gradient blobs */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden>
+        <div className="absolute top-[15%] left-[10%] w-[500px] h-[500px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(13,115,119,0.07) 0%, transparent 70%)' }} />
+        <div className="absolute top-[40%] right-[5%] w-[400px] h-[400px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(230,126,34,0.05) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[10%] left-[30%] w-[350px] h-[350px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(192,57,43,0.04) 0%, transparent 70%)' }} />
       </div>
 
-      {/* Content — centered with glass card for hierarchy */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-16">
-        <motion.div
-          className="welcome-card flex flex-col items-center text-center max-w-md"
-          initial="hidden"
-          animate="visible"
-          variants={logoContainer}
-        >
+      {/* Top nav bar */}
+      <motion.nav
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="relative z-10 flex items-center justify-between px-10 py-6"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 rounded bg-[#0D7377] flex items-center justify-center">
+            <span className="text-white text-xs font-bold" style={{ fontFamily: 'var(--font-display)' }}>C</span>
+          </div>
+          <span className="text-sm font-semibold tracking-wide" style={{ fontFamily: 'var(--font-display)', color: '#1A1A18' }}>
+            CEDAR
+          </span>
+        </div>
+        <div className="flex items-center gap-8 text-sm text-[#6B6B5A]">
+          <Link to="/about" className="hover:text-[#1A1A18] transition-colors">About</Link>
+          <Link to="/privacy" className="hover:text-[#1A1A18] transition-colors">Privacy</Link>
+          <Link
+            to="/login"
+            className="text-[#0D7377] font-medium hover:text-[#0A5C5F] transition-colors"
+          >
+            Log in →
+          </Link>
+        </div>
+      </motion.nav>
+
+      {/* Main hero content */}
+      <div className="relative z-10 flex flex-col items-start justify-center px-10 lg:px-20 pt-[12vh]">
+        <motion.div className="max-w-2xl" initial="hidden" animate="visible">
+
+          {/* Instrument-style label */}
           <motion.div
-            variants={logoItem}
-            animate={reduceMotion ? {} : floatAnimation}
-            className="relative welcome-logo-wrap"
+            variants={fadeIn}
+            custom={0}
+            className="label-instrument mb-6 flex items-center gap-2"
           >
-            <img
-              src="/cedarlogo.png"
-              alt="Cedar"
-              className="w-44 h-44 sm:w-52 sm:h-52 md:w-60 md:h-60 drop-shadow-2xl pointer-events-none select-none welcome-logo"
-            />
+            <span className="w-2 h-2 rounded-full bg-[#27AE60] inline-block" />
+            CLIMATE RISK INTELLIGENCE PLATFORM
           </motion.div>
+
+          {/* Headline */}
           <motion.h1
-            variants={logoItem}
-            className="mt-5 text-[2rem] sm:text-4xl md:text-[2.75rem] font-semibold tracking-tight text-white welcome-title"
+            variants={fadeIn}
+            custom={1}
+            className="text-5xl lg:text-6xl leading-[1.08] tracking-tight mb-6"
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#1A1A18' }}
           >
-            Cedar
+            Lend with the<br />land in mind.
           </motion.h1>
+
+          {/* Subtitle */}
           <motion.p
-            variants={logoItem}
-            className="mt-2 text-[15px] sm:text-base text-[var(--color-primary-light)]/95 font-medium tracking-wide welcome-tagline"
+            variants={fadeIn}
+            custom={2}
+            className="text-lg leading-relaxed mb-10 max-w-lg"
+            style={{ color: '#4A4A3F' }}
           >
-            Climate-informed micro-lending
-          </motion.p>
-          <motion.p
-            variants={logoItem}
-            className="mt-3 text-sm text-white/60 max-w-[280px] leading-relaxed welcome-sub"
-          >
-            Assess property risk with climate and environmental data.
+            Cedar integrates real-time climate data, ML risk models, and AI-powered transcription to help microfinance institutions make climate-smart lending decisions.
           </motion.p>
 
+          {/* Terminal-style CTA button */}
           <motion.button
-          type="button"
-          onClick={handleStart}
-          className="
-            welcome-cta
-            mt-12
-            px-20 py-7
-            rounded-2xl
-            font-semibold
-            text-sm
-            text-white
-            border-0
-            focus:outline-none
-            focus:ring-2
-            focus:ring-[var(--color-primary-light)]
-            focus:ring-offset-2
-            focus:ring-offset-black/60
-            transition-all
-            duration-200
-          "
-          variants={buttonVariants}
-          initial="hidden"
-          animate="visible"
-          whileHover="hover"
-          whileTap="tap"
-        >
-          Get started
-        </motion.button>
+            variants={fadeIn}
+            custom={3}
+            onClick={() => navigate('/login')}
+            className="btn-terminal"
+          >
+            <span style={{ color: '#27AE60' }}>→</span>
+            Run Risk Assessment
+          </motion.button>
 
+          {/* Data badges */}
+          <motion.div
+            variants={fadeIn}
+            custom={4}
+            className="mt-14 flex gap-10"
+          >
+            {[
+              { label: 'ACCURACY', value: '92%', sub: 'ML default prediction' },
+              { label: 'REGIONS', value: '3', sub: 'Bangladesh · Kenya · Peru' },
+              { label: 'RISK DIMS', value: '7', sub: 'Multidimensional scoring' },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <div className="label-instrument mb-1">{stat.label}</div>
+                <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-mono)', color: '#1A1A18' }}>
+                  {stat.value}
+                </div>
+                <div className="text-xs mt-1" style={{ color: '#9B9B8A' }}>{stat.sub}</div>
+              </div>
+            ))}
+          </motion.div>
         </motion.div>
-
-        {/* Minimal footer */}
-        <motion.footer
-          className="absolute bottom-6 left-0 right-0 flex justify-center gap-6 text-xs text-white/40"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.8, duration: 0.4 }}
-        >
-          <Link to="/about" className="hover:text-white/60 transition-colors">About</Link>
-          <span aria-hidden>·</span>
-          <Link to="/privacy" className="hover:text-white/60 transition-colors">Privacy</Link>
-        </motion.footer>
       </div>
+
+      {/* Grid pattern bottom accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-[#E0D9CF]" />
     </div>
   )
 }

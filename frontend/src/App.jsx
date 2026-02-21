@@ -38,7 +38,7 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0f0a]">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#F7F5F0' }}>
         <div className="skeleton-cedar w-12 h-12 rounded-full" />
       </div>
     )
@@ -101,7 +101,7 @@ function AnimatedSwitch() {
 function App() {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-[#0a0f0a]">
+      <div className="min-h-screen" style={{ background: '#F7F5F0' }}>
         <Routes>
           {/* Root and all paths go through AnimatedSwitch so "/" always shows Welcome first */}
           <Route path="*" element={<AnimatedSwitch />} />

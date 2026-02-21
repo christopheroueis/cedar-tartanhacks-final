@@ -1,185 +1,205 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { Building2, User, Lock, ChevronDown, Shield, TrendingUp } from 'lucide-react'
+import { authAPI } from '../services/api'
+import { motion } from 'framer-motion'
+import { AlertCircle, Loader2 } from 'lucide-react'
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+  })
+}
 
 export default function Login() {
-  const [mfiId, setMfiId] = useState('')
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [mfis, setMfis] = useState([])
+  const [formData, setFormData] = useState({ mfi: '', username: '', password: '' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const mfis = [
-    { id: 'bangladesh-mfi', name: 'Grameen Climate Finance', country: 'Bangladesh' },
-    { id: 'kenya-mfi', name: 'M-Pesa Green Loans', country: 'Kenya' },
-    { id: 'peru-mfi', name: 'Banco Sol Verde', country: 'Peru' }
-  ]
+  useEffect(() => {
+    const fetchMfis = async () => {
+      try {
+        const data = await authAPI.getMfis()
+        setMfis(data)
+        if (data.length > 0) setFormData(prev => ({ ...prev, mfi: data[0].id }))
+      } catch {
+        setMfis([
+          { id: 'bangladesh-mfi', name: 'Grameen Climate Finance', country: 'Bangladesh' },
+          { id: 'kenya-mfi', name: 'M-Pesa Green Loans', country: 'Kenya' },
+          { id: 'peru-mfi', name: 'Banco Sol Verde', country: 'Peru' }
+        ])
+        setFormData(prev => ({ ...prev, mfi: 'bangladesh-mfi' }))
+      }
+    }
+    fetchMfis()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const result = await login(mfiId, username, password)
-    if (result.success) {
-      navigate('/app')
-    } else {
-      setError(result.error)
+
+    try {
+      const result = await login(formData.mfi, formData.username, formData.password)
+      if (result.success) {
+        navigate('/app')
+      } else {
+        setError(result.error || 'Invalid credentials')
+      }
+    } catch {
+      setError('Authentication failed. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0f0a]">
-      <header className="pt-10 pb-6 px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex items-center justify-center gap-3"
-        >
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center">
-            <img src="/cedarlogo.png" alt="Cedar" className="w-10 h-10 object-contain" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-white tracking-tight">Cedar</h1>
-            <p className="text-xs text-slate-400 tracking-wide">Climate-informed lending</p>
-          </div>
-        </motion.div>
-      </header>
+    <div className="min-h-screen flex" style={{ background: '#F7F5F0' }}>
+      {/* Left panel — branding */}
+      <div className="hidden lg:flex lg:w-[45%] flex-col justify-between p-12 topo-bg relative overflow-hidden">
+        <div className="absolute inset-0 topo-lines opacity-40" aria-hidden />
 
-      <div className="px-6 py-2 flex justify-center gap-6 text-xs text-slate-400">
-        <div className="flex items-center gap-1.5">
-          <Shield className="w-4 h-4 text-[#14B8A6]" />
-          <span>Risk analysis</span>
+        {/* Subtle risk heatmap blobs */}
+        <div className="absolute top-[20%] left-[15%] w-[300px] h-[300px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(13,115,119,0.08) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[20%] right-[10%] w-[250px] h-[250px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(230,126,34,0.06) 0%, transparent 70%)' }} />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-16">
+            <div className="w-7 h-7 rounded bg-[#0D7377] flex items-center justify-center">
+              <span className="text-white text-sm font-bold" style={{ fontFamily: 'var(--font-display)' }}>C</span>
+            </div>
+            <span className="text-sm font-semibold tracking-wide" style={{ fontFamily: 'var(--font-display)', color: '#1A1A18' }}>
+              CEDAR
+            </span>
+          </div>
+
+          <h2 className="text-3xl leading-[1.15] tracking-tight mb-5" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#1A1A18' }}>
+            Climate-informed<br />lending intelligence.
+          </h2>
+          <p className="text-sm leading-relaxed max-w-sm" style={{ color: '#6B6B5A' }}>
+            7-dimension risk scoring powered by real-time climate data, economic indicators, and machine learning default prediction.
+          </p>
         </div>
-        <div className="flex items-center gap-1.5">
-          <TrendingUp className="w-4 h-4 text-emerald-400" />
-          <span>Smart lending</span>
+
+        <div className="relative z-10 flex gap-8">
+          {[
+            { val: '92%', label: 'ML ACCURACY' },
+            { val: '7', label: 'RISK DIMS' },
+            { val: '< 3s', label: 'ASSESSMENT' },
+          ].map((s) => (
+            <div key={s.label}>
+              <div className="text-xl font-bold" style={{ fontFamily: 'var(--font-mono)', color: '#1A1A18' }}>{s.val}</div>
+              <div className="label-instrument mt-1">{s.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <main className="flex-1 px-6 pb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.05 }}
-          className="card-cedar p-6 max-w-md mx-auto"
-        >
-          <h2 className="text-xl font-semibold text-white mb-1">Welcome back</h2>
-          <p className="text-slate-400 text-sm mb-6">Sign in to continue</p>
+      {/* Right panel — login form */}
+      <div className="flex-1 flex items-center justify-center px-8">
+        <motion.div className="w-full max-w-md" initial="hidden" animate="visible">
+          <motion.div variants={fadeIn} custom={0} className="mb-8">
+            <div className="label-instrument mb-2">SECURE ACCESS</div>
+            <h1 className="text-2xl tracking-tight" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#1A1A18' }}>
+              Sign in to Cedar
+            </h1>
+            <p className="text-sm mt-2" style={{ color: '#6B6B5A' }}>
+              Access your institution's climate risk assessment platform.
+            </p>
+          </motion.div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-300">
-                <Building2 className="w-4 h-4 inline mr-2" />
-                Institution
-              </label>
-              <div className="relative">
-                <select
-                  value={mfiId}
-                  onChange={(e) => setMfiId(e.target.value)}
-                  required
-                  className="input-cedar appearance-none pr-10"
-                >
-                  <option value="">Select your MFI...</option>
-                  {mfis.map((mfi) => (
-                    <option key={mfi.id} value={mfi.id}>
-                      {mfi.name} — {mfi.country}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5 p-3 rounded-md flex items-center gap-2 text-sm"
+              style={{ background: 'rgba(192, 57, 43, 0.08)', border: '1px solid rgba(192, 57, 43, 0.2)', color: '#C0392B' }}
+            >
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {error}
+            </motion.div>
+          )}
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-300">
-                <User className="w-4 h-4 inline mr-2" />
-                Username
-              </label>
+          <form onSubmit={handleSubmit}>
+            {/* MFI Select */}
+            <motion.div variants={fadeIn} custom={1} className="mb-4">
+              <label className="label-instrument block mb-2">INSTITUTION</label>
+              <select
+                value={formData.mfi}
+                onChange={(e) => setFormData(prev => ({ ...prev, mfi: e.target.value }))}
+                className="input-cedar"
+                required
+              >
+                {mfis.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} — {m.country}
+                  </option>
+                ))}
+              </select>
+            </motion.div>
+
+            {/* Username */}
+            <motion.div variants={fadeIn} custom={2} className="mb-4">
+              <label className="label-instrument block mb-2">USERNAME</label>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                value={formData.username}
+                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                placeholder="officer1"
+                className="input-cedar"
                 required
                 autoComplete="username"
-                className="input-cedar"
               />
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-300">
-                <Lock className="w-4 h-4 inline mr-2" />
-                Password
-              </label>
+            {/* Password */}
+            <motion.div variants={fadeIn} custom={3} className="mb-6">
+              <label className="label-instrument block mb-2">PASSWORD</label>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                value={formData.password}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                placeholder="demo123"
+                className="input-cedar"
                 required
                 autoComplete="current-password"
-                className="input-cedar"
               />
-            </div>
+            </motion.div>
 
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-5 h-5 rounded border-slate-600 bg-slate-700/50 text-[#14B8A6] focus:ring-[#14B8A6] focus:ring-offset-0"
-              />
-              <span className="text-sm text-slate-300">Remember me for offline access</span>
-            </label>
-
-            {error && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-sm"
+            {/* Submit */}
+            <motion.div variants={fadeIn} custom={4}>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full py-3"
               >
-                {error}
-              </motion.div>
-            )}
-
-            <motion.button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Signing in...
-                </span>
-              ) : (
-                'Sign in'
-              )}
-            </motion.button>
+                {loading ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Authenticating…</>
+                ) : (
+                  'Sign in'
+                )}
+              </button>
+            </motion.div>
           </form>
+
+          {/* Demo hint */}
+          <motion.div variants={fadeIn} custom={5} className="mt-8 p-4 rounded-md" style={{ background: '#FAF8F5', border: '1px solid #E0D9CF' }}>
+            <div className="label-instrument mb-2">DEMO CREDENTIALS</div>
+            <div className="text-sm" style={{ color: '#4A4A3F', fontFamily: 'var(--font-mono)' }}>
+              <div>username: <span style={{ color: '#0D7377' }}>officer1</span></div>
+              <div>password: <span style={{ color: '#0D7377' }}>demo123</span></div>
+              <div className="mt-1 text-xs" style={{ color: '#9B9B8A' }}>MFI: Grameen Climate Finance</div>
+            </div>
+          </motion.div>
         </motion.div>
-
-        <div className="mt-6 text-center">
-          <p className="text-xs text-slate-500 mb-2">Demo credentials</p>
-          <div className="inline-block glass-card px-4 py-2 text-xs text-slate-400">
-            <code>officer1</code> / <code>officer2</code> / <code>officer3</code> — Password: <code>demo123</code>
-          </div>
-        </div>
-      </main>
-
-      <footer className="py-4 text-center text-xs text-slate-500">
-        <p>© 2026 Cedar · Climate-informed lending for MFIs</p>
-      </footer>
+      </div>
     </div>
   )
 }

@@ -1,85 +1,65 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   CEDAR DESIGN SYSTEM — Climate-Informed Lending Platform
+   CEDAR DESIGN SYSTEM v2 — Editorial Fintech
+   "Precision meets planet"
    ========================================================================== */
 
 @theme {
-  /* Primary — Cedar logo palette */
-  --color-cedar: #0A4D3C;
-  --color-cedar-mid: #2E7D32;
-  --color-cedar-light: #62BB46;
-  --color-cedar-accent: #14B8A6;
-  --color-cedar-bark: #A35D2A;
-  --color-accent-muted: rgba(46, 125, 50, 0.15);
-  
-  /* Neutrals */
-  --color-slate-850: #0f1410;
-  --color-slate-825: #131a12;
-  --color-cream: #F8F6F3;
-  
+  /* Primary — Earth palette */
+  --color-cedar: #0D7377;
+  --color-cedar-dark: #0A5C5F;
+  --color-cedar-light: #14918A;
+  --color-clay: #B8755D;
+  --color-moss: #5C7C5A;
+  --color-sand: #D4C5A9;
+  --color-slate-warm: #4A4A3F;
+
+  /* Background & Surface */
+  --color-bg: #F7F5F0;
+  --color-bg-warm: #F2EDE5;
+  --color-surface: #FFFFFF;
+  --color-surface-border: #E0D9CF;
+  --color-surface-hover: #FAF8F5;
+
+  /* Text */
+  --color-text-primary: #1A1A18;
+  --color-text-secondary: #4A4A3F;
+  --color-text-muted: #6B6B5A;
+  --color-text-subtle: #9B9B8A;
+
   /* Semantic — Risk */
-  --color-risk-high: #DC2626;
-  --color-risk-medium: #F59E0B;
-  --color-risk-low: #10B981;
-  --color-ai-high: #0EA5E9;
-  --color-ai-low: #94A3B8;
-  
-  /* Shadows — depth system (light source top-left) */
-  --shadow-depth-1: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-depth-2: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-  --shadow-depth-3: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-cedar: 0 4px 12px rgba(10, 77, 60, 0.3);
-  --shadow-cedar-hover: 0 6px 20px rgba(10, 77, 60, 0.4);
-  
+  --color-risk-high: #C0392B;
+  --color-risk-medium: #E67E22;
+  --color-risk-low: #27AE60;
+  --color-data-teal: #0D7377;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
+
   /* Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
   /* Motion */
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-fast: 100ms;
-  --duration-normal: 200ms;
-  --duration-slow: 300ms;
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
 }
 
 /* ==========================================================================
-   ROOT VARIABLES (for non-Tailwind use)
+   ROOT VARIABLES
    ========================================================================== */
 
 :root {
-  --color-primary: #0A4D3C;
-  --color-primary-mid: #2E7D32;
-  --color-primary-light: #62BB46;
-  --color-accent: #14B8A6;
-  --color-bark: #A35D2A;
-  --color-bg: #0a0f0a;
-  --color-bg-elevated: #0f1410;
-  --color-surface: rgba(255, 255, 255, 0.03);
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-border-strong: rgba(255, 255, 255, 0.1);
-  --color-text: #F1F5F9;
-  --color-text-muted: #94A3B8;
-  --color-text-subtle: #64748B;
-  
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
-  
-  --touch-target: 48px;
-}
-
-/* Light mode */
-[data-theme="light"] {
-  --color-bg: #F8F6F3;
-  --color-bg-elevated: #ffffff;
-  --color-surface: rgba(0, 0, 0, 0.02);
-  --color-border: rgba(0, 0, 0, 0.08);
-  --color-border-strong: rgba(0, 0, 0, 0.12);
-  --color-text: #1E293B;
-  --color-text-muted: #64748B;
-  --color-text-subtle: #94A3B8;
+  --font-display: 'Syne', sans-serif;
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'DM Mono', 'SF Mono', ui-monospace, monospace;
 }
 
 /* ==========================================================================
@@ -93,26 +73,47 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 15px;
   -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-sans);
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: #F7F5F0;
+  color: #1A1A18;
   min-height: 100vh;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ==========================================================================
-   TYPOGRAPHY SCALE
+   TYPOGRAPHY
    ========================================================================== */
 
-.font-mono-nums {
-  font-variant-numeric: tabular-nums;
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.label-instrument {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6B6B5A;
+}
+
+.data-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: #1A1A18;
 }
 
 /* ==========================================================================
@@ -120,30 +121,30 @@ body {
    ========================================================================== */
 
 .btn-primary {
-  background: linear-gradient(135deg, #0A4D3C 0%, #2E7D32 50%, #62BB46 100%);
-  border-radius: 12px;
-  padding: 12px 24px;
+  background: #0D7377;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-family: var(--font-sans);
   font-weight: 600;
-  font-size: 1rem;
-  color: white;
-  box-shadow: 0 4px 20px rgba(10, 77, 60, 0.35);
-  transition: transform 0.15s var(--ease-out-expo), box-shadow 0.15s ease;
-  min-height: var(--touch-target);
+  font-size: 0.9rem;
+  color: #FFFFFF;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: none;
-  cursor: pointer;
+  transition: background 150ms ease, box-shadow 150ms ease;
+  box-shadow: 0 1px 3px rgba(13, 115, 119, 0.2);
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(46, 125, 50, 0.4);
+  background: #0A5C5F;
+  box-shadow: 0 2px 8px rgba(13, 115, 119, 0.25);
 }
 
 .btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+  background: #084A4D;
 }
 
 .btn-primary:disabled {
@@ -153,122 +154,129 @@ body {
 
 .btn-secondary {
   background: transparent;
-  border: 1.5px solid #334155;
-  color: #CBD5E1;
-  border-radius: 12px;
-  padding: 12px 24px;
+  border: 1px solid #E0D9CF;
+  color: #4A4A3F;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-family: var(--font-sans);
   font-weight: 600;
-  font-size: 1rem;
-  min-height: var(--touch-target);
+  font-size: 0.9rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 150ms ease, background 150ms ease;
 }
 
 .btn-secondary:hover {
-  border-color: #475569;
-  background: rgba(255, 255, 255, 0.04);
+  border-color: #C8BFB0;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.btn-terminal {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: #1A1A18;
+  color: #F7F5F0;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 28px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: background 150ms ease, transform 100ms ease;
+  letter-spacing: 0.02em;
+}
+
+.btn-terminal:hover {
+  background: #2A2A28;
+  transform: translateY(-1px);
+}
+
+.btn-terminal:active {
+  transform: translateY(0);
 }
 
 /* ==========================================================================
    INPUTS
    ========================================================================== */
 
+input,
+select,
+textarea {
+  font-family: var(--font-sans);
+}
+
+input[type="number"],
+input[type="text"].mono-input {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
 .input-cedar {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 16px;
-  color: var(--color-text);
+  background: #FFFFFF;
+  border: 1px solid #E0D9CF;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  color: #1A1A18;
   width: 100%;
-  min-height: var(--touch-target);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .input-cedar::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: #9B9B8A;
 }
 
 .input-cedar:focus {
   outline: none;
-  border-color: #62BB46;
-  box-shadow: 0 0 0 3px rgba(98, 187, 70, 0.15);
-}
-
-[data-theme="light"] .input-cedar {
-  background: #fff;
-  border-color: rgba(0, 0, 0, 0.1);
-  color: #1E293B;
-}
-
-[data-theme="light"] .input-cedar::placeholder {
-  color: #94A3B8;
-}
-
-[data-theme="light"] .input-cedar:focus {
-  border-color: #14B8A6;
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+  border-color: #0D7377;
+  box-shadow: 0 0 0 3px rgba(13, 115, 119, 0.1);
 }
 
 /* ==========================================================================
-   CARDS — 3-tier depth system
+   CARDS
    ========================================================================== */
 
 .card-cedar {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E0D9CF;
+  border-radius: 8px;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .card-cedar:hover {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: #C8BFB0;
 }
 
-[data-theme="light"] .card-cedar {
-  background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.06);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-/* Legacy alias — use card-cedar in new code */
+/* Legacy alias */
 .card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E0D9CF;
+  border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 /* ==========================================================================
-   RECOMMENDATION BORDERS (semantic)
+   RECOMMENDATION BADGES (semantic)
    ========================================================================== */
 
 .recommendation-approve {
-  border-left: 4px solid #10B981;
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%);
+  border-left: 3px solid #27AE60;
+  background: linear-gradient(90deg, rgba(39, 174, 96, 0.06) 0%, transparent 100%);
 }
 
 .recommendation-caution {
-  border-left: 4px solid #F59E0B;
-  background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, transparent 100%);
+  border-left: 3px solid #E67E22;
+  background: linear-gradient(90deg, rgba(230, 126, 34, 0.06) 0%, transparent 100%);
 }
 
 .recommendation-defer {
-  border-left: 4px solid #DC2626;
-  background: linear-gradient(90deg, rgba(220, 38, 38, 0.08) 0%, transparent 100%);
+  border-left: 3px solid #C0392B;
+  background: linear-gradient(90deg, rgba(192, 57, 43, 0.06) 0%, transparent 100%);
 }
 
 /* ==========================================================================
@@ -278,13 +286,13 @@ body {
 .skeleton-cedar {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.04) 100%
+    #E8E3DA 0%,
+    #F0EBE2 50%,
+    #E8E3DA 100%
   );
   background-size: 200% 100%;
   animation: shimmer-cedar 1.5s ease-in-out infinite;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 @keyframes shimmer-cedar {
@@ -305,20 +313,12 @@ body {
   animation: fadeInUp 0.3s var(--ease-out-expo) forwards;
 }
 
-/* ==========================================================================
-   FORM DEFAULTS (mobile-friendly)
-   ========================================================================== */
-
-input,
-select,
-textarea {
-  font-family: var(--font-sans);
+@keyframes fillBar {
+  from { width: 0; }
 }
 
-input[type="number"],
-.mono-data {
-  font-variant-numeric: tabular-nums;
-  font-family: var(--font-mono);
+@keyframes gaugeReveal {
+  from { stroke-dashoffset: var(--gauge-circumference); }
 }
 
 /* ==========================================================================
@@ -326,31 +326,26 @@ input[type="number"],
    ========================================================================== */
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-elevated);
+  background: #F7F5F0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  background: #D4C5A9;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #B8A88A;
 }
 
 /* ==========================================================================
-   HIGH CONTRAST / REDUCED MOTION
+   REDUCED MOTION
    ========================================================================== */
-
-@media (prefers-contrast: high) {
-  body { background: #000; color: #fff; }
-  .card-cedar { background: #111; border-color: rgba(255,255,255,0.2); }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -360,64 +355,206 @@ input[type="number"],
 }
 
 /* ==========================================================================
-   WELCOME PAGE
+   RISK GAUGE — SVG gauge component
    ========================================================================== */
 
-.welcome-vignette {
-  background: radial-gradient(
-    ellipse 80% 70% at 50% 50%,
-    transparent 40%,
-    rgba(0, 0, 0, 0.4) 100%
-  );
-  pointer-events: none;
+.risk-gauge-track {
+  fill: none;
+  stroke: #E8E3DA;
+  stroke-width: 8;
+  stroke-linecap: round;
 }
 
-.welcome-card {
-  /* Subtle containment; no heavy panel to keep focus on logo */
+.risk-gauge-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 800ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.welcome-logo-wrap {
-  filter: drop-shadow(0 0 32px rgba(46, 125, 50, 0.25))
-          drop-shadow(0 0 64px rgba(10, 77, 60, 0.15));
+/* ==========================================================================
+   STEP BAR — horizontal progress
+   ========================================================================== */
+
+.step-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
 }
 
-.welcome-logo {
-  display: block;
+.step-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
-.welcome-title {
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5),
-               0 0 40px rgba(10, 77, 60, 0.15);
+.step-bar-item::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #E0D9CF;
+  z-index: 0;
 }
 
-.welcome-tagline {
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+.step-bar-item:first-child::before {
+  left: 50%;
 }
 
-.welcome-sub {
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+.step-bar-item:last-child::before {
+  right: 50%;
 }
 
-.welcome-cta {
-  background: linear-gradient(
-    135deg,
-    #0A4D3C 0%,
-    #1a6b52 40%,
-    #2E7D32 70%,
-    #3d8f3a 100%
-  );
-  box-shadow: 0 4px 24px rgba(10, 77, 60, 0.4),
-              0 0 48px rgba(46, 125, 50, 0.15),
-              inset 0 1px 0 rgba(255, 255, 255, 0.12);
+.step-bar-item.active::before,
+.step-bar-item.complete::before {
+  background: #0D7377;
 }
 
-.welcome-cta:hover {
-  box-shadow: 0 6px 32px rgba(46, 125, 50, 0.45),
-              0 0 56px rgba(46, 125, 50, 0.2),
-              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+.step-bar-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #E0D9CF;
+  background: #F7F5F0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #9B9B8A;
+  transition: all 200ms ease;
 }
 
-.welcome-cta:active {
-  box-shadow: 0 2px 16px rgba(10, 77, 60, 0.35),
-              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+.step-bar-item.active .step-bar-dot {
+  border-color: #0D7377;
+  background: #0D7377;
+  color: white;
 }
+
+.step-bar-item.complete .step-bar-dot {
+  border-color: #0D7377;
+  background: #0D7377;
+  color: white;
+}
+
+.step-bar-label {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9B9B8A;
+}
+
+.step-bar-item.active .step-bar-label,
+.step-bar-item.complete .step-bar-label {
+  color: #0D7377;
+}
+
+/* ==========================================================================
+   TOPOGRAPHIC MAP BACKGROUND
+   ========================================================================== */
+
+.topo-bg {
+  background-color: #F7F5F0;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 30% 40%, rgba(13, 115, 119, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 70% 60%, rgba(230, 126, 34, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 50% 20%, rgba(192, 57, 43, 0.03) 0%, transparent 60%);
+}
+
+.topo-lines {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cpath d='M0 200 Q100 180 200 200 T400 200' fill='none' stroke='%23E0D9CF' stroke-width='0.5' opacity='0.5'/%3E%3Cpath d='M0 180 Q120 150 200 180 T400 170' fill='none' stroke='%23E0D9CF' stroke-width='0.5' opacity='0.4'/%3E%3Cpath d='M0 220 Q80 240 200 220 T400 230' fill='none' stroke='%23E0D9CF' stroke-width='0.5' opacity='0.4'/%3E%3Cpath d='M0 160 Q140 120 250 160 T400 150' fill='none' stroke='%23E0D9CF' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M0 240 Q60 270 180 240 T400 250' fill='none' stroke='%23E0D9CF' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M0 140 Q160 100 300 140 T400 130' fill='none' stroke='%23E0D9CF' stroke-width='0.5' opacity='0.25'/%3E%3Cpath d='M0 260 Q50 300 160 260 T400 270' fill='none' stroke='%23E0D9CF' stroke-width='0.5' opacity='0.25'/%3E%3C/svg%3E");
+  background-size: 400px 400px;
+}
+
+/* ==========================================================================
+   LAYOUT — Desktop sidebar
+   ========================================================================== */
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+  background: #F7F5F0;
+}
+
+.app-sidebar {
+  background: #FFFFFF;
+  border-right: 1px solid #E0D9CF;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.app-main {
+  padding: 32px 40px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+/* ==========================================================================
+   DATA TABLE
+   ========================================================================== */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.data-table th {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6B6B5A;
+  text-align: left;
+  padding: 10px 16px;
+  border-bottom: 1px solid #E0D9CF;
+  background: #FAF8F5;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F0EBE2;
+  color: #1A1A18;
+}
+
+.data-table tr:hover td {
+  background: #FAF8F5;
+}
+
+/* ==========================================================================
+   RISK FACTOR BARS
+   ========================================================================== */
+
+.risk-bar-track {
+  height: 6px;
+  background: #F0EBE2;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.risk-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.risk-bar-fill.low { background: #27AE60; }
+.risk-bar-fill.medium { background: #E67E22; }
+.risk-bar-fill.high { background: #C0392B; }

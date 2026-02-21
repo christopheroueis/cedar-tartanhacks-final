@@ -4,10 +4,9 @@ import { useAuth } from '../context/AuthContext'
 import { assessmentsAPI } from '../services/api'
 import {
     MapPin, DollarSign, Wheat, User, FileCheck,
-    ChevronDown, Navigation, Loader2, AlertCircle, Mic, MicOff, Square,
-    Sparkles, PenLine, Check, Edit2, ChevronLeft
+    Navigation, Loader2, AlertCircle, Mic, MicOff, Square,
+    Sparkles, PenLine, Check, ChevronLeft, ArrowRight
 } from 'lucide-react'
-import ProgressBar from '../components/ProgressBar'
 import LocationDetection from '../components/LocationDetection'
 import LoadingAnimation from '../components/LoadingAnimation'
 import { formatLocationForBackend } from '../services/locationService'
@@ -22,8 +21,8 @@ export default function NewAssessment() {
     const [gpsLoading, setGpsLoading] = useState(false)
 
     // Multi-step flow state
-    const [step, setStep] = useState('mode-select') // 'mode-select' | 'location-detect' | 'loading' | 'manual-form' | 'recording' | 'review'
-    const [entryMode, setEntryMode] = useState(null) // 'manual' | 'ai'
+    const [step, setStep] = useState('mode-select')
+    const [entryMode, setEntryMode] = useState(null)
 
     // Location state
     const [location, setLocation] = useState(null)
@@ -62,16 +61,11 @@ export default function NewAssessment() {
     ]
 
     const cropTypes = [
-        { id: 'rice', name: 'Rice' },
-        { id: 'wheat', name: 'Wheat' },
-        { id: 'maize', name: 'Maize/Corn' },
-        { id: 'coffee', name: 'Coffee' },
-        { id: 'tea', name: 'Tea' },
-        { id: 'sugarcane', name: 'Sugarcane' },
-        { id: 'vegetables', name: 'Mixed Vegetables' },
-        { id: 'fruits', name: 'Fruits' },
-        { id: 'cotton', name: 'Cotton' },
-        { id: 'other', name: 'Other' }
+        { id: 'rice', name: 'Rice' }, { id: 'wheat', name: 'Wheat' },
+        { id: 'maize', name: 'Maize/Corn' }, { id: 'coffee', name: 'Coffee' },
+        { id: 'tea', name: 'Tea' }, { id: 'sugarcane', name: 'Sugarcane' },
+        { id: 'vegetables', name: 'Vegetables' }, { id: 'fruits', name: 'Fruits' },
+        { id: 'cotton', name: 'Cotton' }, { id: 'other', name: 'Other' }
     ]
 
     const demoLocations = {
@@ -90,47 +84,28 @@ export default function NewAssessment() {
             recognitionRef.current.lang = 'en-US'
 
             recognitionRef.current.onresult = (event) => {
-                let interim = ''
-                let final = ''
+                let interim = '', final = ''
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const result = event.results[i]
-                    if (result.isFinal) {
-                        final += result[0].transcript + ' '
-                    } else {
-                        interim += result[0].transcript
-                    }
+                    if (event.results[i].isFinal) final += event.results[i][0].transcript + ' '
+                    else interim += event.results[i][0].transcript
                 }
-                if (final) {
-                    setTranscript(prev => prev + final)
-                }
+                if (final) setTranscript(prev => prev + final)
                 setInterimTranscript(interim)
             }
 
             recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error:', event.error)
-                if (event.error === 'not-allowed') {
-                    setExtractionError('Microphone access denied. Please allow microphone access.')
-                }
+                if (event.error === 'not-allowed') setExtractionError('Microphone access denied.')
             }
 
             recognitionRef.current.onend = () => {
-                if (isRecording) {
-                    recognitionRef.current.start()
-                }
+                if (isRecording) recognitionRef.current.start()
             }
         }
-
-        return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop()
-            }
-        }
+        return () => { if (recognitionRef.current) recognitionRef.current.stop() }
     }, [isRecording])
 
     const startRecording = () => {
-        setTranscript('')
-        setInterimTranscript('')
-        setExtractionError('')
+        setTranscript(''); setInterimTranscript(''); setExtractionError('')
         setIsRecording(true)
         recognitionRef.current?.start()
     }
@@ -138,33 +113,22 @@ export default function NewAssessment() {
     const stopRecording = async () => {
         setIsRecording(false)
         recognitionRef.current?.stop()
-
-        // Extract data from transcript
-        if (transcript.trim().length > 5) {
-            await extractDataFromTranscript()
-        } else {
-            setExtractionError('No speech detected. Please speak clearly and try again.')
-        }
+        if (transcript.trim().length > 5) await extractDataFromTranscript()
+        else setExtractionError('No speech detected.')
     }
 
     const extractDataFromTranscript = async () => {
-        setExtracting(true)
-        setExtractionError('')
-
+        setExtracting(true); setExtractionError('')
         try {
             const response = await fetch(`${API_BASE}/api/v2/ai/extract`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ transcript })
             })
-
             const result = await response.json()
-
             if (result.success) {
                 setExtractedData(result.extracted)
                 setConfidence(result.confidence || {})
-
-                // Merge extracted data into form
                 setFormData(prev => ({
                     ...prev,
                     clientName: result.extracted.clientName || prev.clientName,
@@ -176,73 +140,42 @@ export default function NewAssessment() {
                     repaymentHistory: result.extracted.repaymentHistory?.toString() || prev.repaymentHistory,
                     monthlyIncome: result.extracted.monthlyIncome?.toString() || prev.monthlyIncome
                 }))
-
                 setStep('review')
             } else {
-                setExtractionError(result.error || 'Failed to extract data. Please try again.')
+                setExtractionError(result.error || 'Extraction failed.')
             }
-        } catch (error) {
-            console.error('Extraction error:', error)
-            setExtractionError('Failed to connect to AI service. Please try again.')
-        } finally {
-            setExtracting(false)
-        }
+        } catch {
+            setExtractionError('Failed to connect to AI service.')
+        } finally { setExtracting(false) }
     }
 
     const mapProjectType = (type) => {
-        const mapping = {
-            'agriculture': 'agriculture',
-            'livestock': 'livestock',
-            'retail': 'small_business',
-            'manufacturing': 'small_business',
-            'services': 'small_business',
-            'housing': 'housing',
-            'fishing': 'agriculture',
-            'transport': 'small_business'
-        }
+        const mapping = { agriculture: 'agriculture', livestock: 'livestock', retail: 'small_business', manufacturing: 'small_business', services: 'small_business', housing: 'housing', fishing: 'agriculture', transport: 'small_business' }
         return mapping[type] || null
     }
 
-    const getConfidenceColor = (field) => {
+    const getConfidenceBadge = (field) => {
         const level = confidence[field]
-        if (level === 'high') return 'text-emerald-400 bg-emerald-500/20'
-        if (level === 'medium') return 'text-amber-400 bg-amber-500/20'
-        return 'text-rose-400 bg-rose-500/20'
+        if (level === 'high') return { text: 'HIGH', color: '#27AE60', bg: 'rgba(39,174,96,0.1)' }
+        if (level === 'medium') return { text: 'MED', color: '#E67E22', bg: 'rgba(230,126,34,0.1)' }
+        return { text: 'LOW', color: '#C0392B', bg: 'rgba(192,57,43,0.1)' }
     }
 
     const detectLocation = async () => {
         setGpsLoading(true)
-
         if (!navigator.geolocation) {
             const demoLoc = demoLocations[mfi?.id] || demoLocations['bangladesh-mfi']
-            setFormData(prev => ({
-                ...prev,
-                latitude: demoLoc.lat.toString(),
-                longitude: demoLoc.lng.toString(),
-                locationName: demoLoc.name + ' (Demo)'
-            }))
-            setGpsLoading(false)
-            return
+            setFormData(prev => ({ ...prev, latitude: demoLoc.lat.toString(), longitude: demoLoc.lng.toString(), locationName: demoLoc.name + ' (Demo)' }))
+            setGpsLoading(false); return
         }
-
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                setFormData(prev => ({
-                    ...prev,
-                    latitude: position.coords.latitude.toFixed(6),
-                    longitude: position.coords.longitude.toFixed(6),
-                    locationName: 'GPS Location Detected'
-                }))
+                setFormData(prev => ({ ...prev, latitude: position.coords.latitude.toFixed(6), longitude: position.coords.longitude.toFixed(6), locationName: 'GPS Location Detected' }))
                 setGpsLoading(false)
             },
             () => {
                 const demoLoc = demoLocations[mfi?.id] || demoLocations['bangladesh-mfi']
-                setFormData(prev => ({
-                    ...prev,
-                    latitude: demoLoc.lat.toString(),
-                    longitude: demoLoc.lng.toString(),
-                    locationName: demoLoc.name + ' (Demo)'
-                }))
+                setFormData(prev => ({ ...prev, latitude: demoLoc.lat.toString(), longitude: demoLoc.lng.toString(), locationName: demoLoc.name + ' (Demo)' }))
                 setGpsLoading(false)
             },
             { enableHighAccuracy: true, timeout: 10000 }
@@ -257,730 +190,352 @@ export default function NewAssessment() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
-
         try {
             const result = await assessmentsAPI.createAssessment({
-                latitude: parseFloat(formData.latitude),
-                longitude: parseFloat(formData.longitude),
-                locationName: formData.locationName,
-                loanAmount: parseFloat(formData.loanAmount),
-                loanPurpose: formData.loanPurpose,
-                cropType: formData.cropType || null,
-                clientAge: parseInt(formData.clientAge),
-                existingLoans: parseInt(formData.existingLoans),
+                latitude: parseFloat(formData.latitude), longitude: parseFloat(formData.longitude),
+                locationName: formData.locationName, loanAmount: parseFloat(formData.loanAmount),
+                loanPurpose: formData.loanPurpose, cropType: formData.cropType || null,
+                clientAge: parseInt(formData.clientAge), existingLoans: parseInt(formData.existingLoans),
                 repaymentHistory: parseFloat(formData.repaymentHistory)
             })
-
             if (result.success && result.assessment) {
                 sessionStorage.setItem(`assessment_${result.assessment.id}`, JSON.stringify(result.assessment))
-                setLoading(false)
-                navigate(`/app/results/${result.assessment.id}`)
-                return
+                setLoading(false); navigate(`/app/results/${result.assessment.id}`); return
             }
-        } catch (error) {
-            console.warn('API call failed, using demo mode:', error.message)
-        }
+        } catch (error) { console.warn('API call failed, using demo mode:', error.message) }
 
-        // Fallback to demo mode
         const assessmentId = `assess_${Date.now()}`
         sessionStorage.setItem(`assessment_${assessmentId}`, JSON.stringify({
-            ...formData,
-            mfiId: mfi?.slug || mfi?.id,
-            loanOfficerId: user?.id,
-            loanOfficerName: user?.name,
+            ...formData, mfiId: mfi?.slug || mfi?.id,
+            loanOfficerId: user?.id, loanOfficerName: user?.name,
             timestamp: new Date().toISOString()
         }))
         setLoading(false)
         navigate(`/app/results/${assessmentId}`)
     }
 
-    const handleModeSelect = (mode) => {
-        setEntryMode(mode)
-        setStep('location-detect')
-    }
+    const handleModeSelect = (mode) => { setEntryMode(mode); setStep('location-detect') }
 
     const handleLocationConfirmed = (detectedLocation) => {
         setLocation(detectedLocation)
-        // Update form data with location
-        setFormData(prev => ({
-            ...prev,
-            latitude: detectedLocation.lat.toString(),
-            longitude: detectedLocation.lng.toString(),
-            locationName: detectedLocation.formatted
-        }))
+        setFormData(prev => ({ ...prev, latitude: detectedLocation.lat.toString(), longitude: detectedLocation.lng.toString(), locationName: detectedLocation.formatted }))
         setStep('loading')
     }
 
-    const handleLoadingComplete = () => {
-        if (entryMode === 'manual') {
-            setStep('manual-form')
-        } else {
-            setStep('recording')
-        }
-    }
+    const handleLoadingComplete = () => { setStep(entryMode === 'manual' ? 'manual-form' : 'recording') }
 
     const handleBack = () => {
-        if (step === 'manual-form' || step === 'recording') {
-            setStep('mode-select')
-            setEntryMode(null)
-        } else if (step === 'review') {
-            setStep('recording')
-        }
+        if (step === 'manual-form' || step === 'recording') { setStep('mode-select'); setEntryMode(null) }
+        else if (step === 'review') setStep('recording')
     }
 
-    // ============ RENDER SECTIONS ============
+    // Get current step index for step bar
+    const stepNames = ['MODE', 'LOCATION', 'DATA', 'ASSESS']
+    const stepIndex = step === 'mode-select' ? 0 : (step === 'location-detect' ? 1 : (step === 'loading' ? 2 : (step === 'manual-form' || step === 'recording' || step === 'review' ? 2 : 3)))
 
-    const stepLabel = step === 'manual-form' ? 'Manual Entry' : step === 'recording' ? 'AI Assistant' : step === 'review' ? 'Review Data' : null
-    const renderInFlowBar = () => step !== 'mode-select' && stepLabel && (
-        <div className="flex items-center gap-3 px-4 py-2 border-b border-white/5">
-            <button
-                type="button"
-                onClick={handleBack}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-slate-300 hover:text-white"
-                aria-label="Back"
-            >
-                <ChevronLeft className="w-5 h-5" />
-            </button>
-            <span className="text-sm font-medium text-slate-300">{stepLabel}</span>
-        </div>
-    )
+    // ============ RENDER ============
 
-    const renderModeSelection = () => (
-        <div className="px-4 py-8 max-w-lg mx-auto space-y-6">
-            <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">How would you like to enter data?</h2>
-                <p className="text-slate-400">Choose your preferred method for this assessment</p>
-            </div>
+    if (step === 'location-detect') {
+        return <LocationDetection onLocationConfirmed={handleLocationConfirmed} />
+    }
 
-            {/* AI Assistant Option */}
-            <button
-                onClick={() => handleModeSelect('ai')}
-                className="w-full p-6 rounded-2xl bg-[#0A4D3C]/15 border-2 border-[#14B8A6]/40 hover:border-[#14B8A6]/60 
-                         transition-all duration-200 text-left"
-            >
-                <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#0A4D3C] to-[#14B8A6] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#0A4D3C]/30">
-                        <Sparkles className="w-7 h-7 text-white" />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
-                            AI Assistant
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-[#14B8A6]/20 text-[#14B8A6]">Recommended</span>
-                        </h3>
-                        <p className="text-sm text-slate-400 mb-3">
-                            Record your conversation with the client. AI will transcribe and extract data automatically.
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
-                            <span className="flex items-center gap-1">
-                                <Mic className="w-3 h-3" /> Voice recording
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <Sparkles className="w-3 h-3" /> Auto-extract
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </button>
-
-            {/* Manual Entry Option */}
-            <button
-                onClick={() => handleModeSelect('manual')}
-                className="w-full p-6 rounded-2xl bg-white/5 border-2 border-white/10 hover:border-white/20 
-                         transition-all duration-200 text-left"
-            >
-                <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-slate-700/80 flex items-center justify-center flex-shrink-0">
-                        <PenLine className="w-7 h-7 text-white" />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white mb-1">Manual Entry</h3>
-                        <p className="text-sm text-slate-400 mb-3">
-                            Fill out the form manually with client information.
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
-                            <span className="flex items-center gap-1">
-                                <Edit2 className="w-3 h-3" /> Type Data
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <FileCheck className="w-3 h-3" /> Full Control
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </button>
-        </div>
-    )
-
-    const renderRecording = () => (
-        <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
-            {/* Recording Controls */}
-            <div className="card-cedar text-center py-8">
-                <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-6 transition-all duration-200
-                    ${isRecording
-                        ? 'bg-red-500/90 animate-pulse shadow-lg shadow-red-500/30'
-                        : 'bg-gradient-to-br from-[#0A4D3C] to-[#14B8A6] shadow-lg shadow-[#0A4D3C]/30'}`}
-                >
-                    {isRecording ? (
-                        <Mic className="w-16 h-16 text-white" />
-                    ) : (
-                        <MicOff className="w-16 h-16 text-white/80" />
-                    )}
-                </div>
-
-                {!isRecording && !extracting && (
-                    <button
-                        type="button"
-                        onClick={startRecording}
-                        className="btn-primary"
-                    >
-                        Start recording
-                    </button>
-                )}
-
-                {isRecording && (
-                    <button
-                        type="button"
-                        onClick={stopRecording}
-                        className="px-8 py-3 rounded-xl bg-red-500/90 hover:bg-red-500 text-white font-semibold flex items-center gap-2 mx-auto transition-colors"
-                    >
-                        <Square className="w-5 h-5" />
-                        Stop & extract
-                    </button>
-                )}
-
-                {extracting && (
-                    <div className="flex items-center justify-center gap-3 text-[#14B8A6]">
-                        <Loader2 className="w-6 h-6 animate-spin" />
-                        <span className="font-medium">Extracting data...</span>
-                    </div>
-                )}
-
-                {isRecording && (
-                    <p className="text-sm text-slate-400 mt-4">
-                        Recording... Speak naturally with your client
-                    </p>
-                )}
-            </div>
-
-            {/* Transcript Area - Editable */}
-            <div className="card-cedar">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-[#14B8A6] tracking-wide">
-                        Transcript
-                    </h3>
-                    <span className="text-xs text-slate-500">
-                        {transcript.length > 0 ? `${transcript.split(' ').length} words` : 'Type or speak'}
-                    </span>
-                </div>
-                <textarea
-                    value={transcript}
-                    onChange={(e) => setTranscript(e.target.value)}
-                    placeholder="Speech will appear here, or type/paste your conversation"
-                    className="input-cedar min-h-[180px] p-4 resize-none"
-                />
-                {interimTranscript && (
-                    <p className="text-sm text-slate-500 mt-2 italic">{interimTranscript}</p>
-                )}
-            </div>
-
-            {/* Manual Extract Button */}
-            {!isRecording && !extracting && transcript.trim().length > 0 && (
-                <button
-                    type="button"
-                    onClick={extractDataFromTranscript}
-                    className="btn-primary w-full py-4 text-lg"
-                >
-                    <Sparkles className="w-6 h-6" />
-                    Extract data with AI
-                </button>
-            )}
-
-            {extractionError && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-red-300">{extractionError}</p>
-                </div>
-            )}
-
-            {/* Speech Recognition Notice */}
-            {!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window) && (
-                <div className="p-4 rounded-xl bg-amber-500/20 border border-amber-500/30">
-                    <p className="text-sm text-amber-300">
-                        ⚠️ Speech recognition not available. You can type or paste your conversation above.
-                    </p>
-                </div>
-            )}
-
-            {/* Tip */}
-            <div className="text-center text-sm text-slate-500">
-                <p>💡 Tip: You can type or paste the conversation directly if voice isn't working</p>
-            </div>
-        </div>
-    )
-
-    const renderReview = () => (
-        <div className="px-4 py-6 max-w-lg mx-auto">
-            <div className="mb-6 p-4 rounded-xl bg-[#14B8A6]/10 border border-[#14B8A6]/30">
-                <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-5 h-5 text-[#14B8A6]" />
-                    <span className="font-semibold text-[#14B8A6]">AI extracted data</span>
-                </div>
-                <p className="text-sm text-slate-400">
-                    Review and edit the extracted information before proceeding
-                </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Location - Always required */}
-                <section className="card-cedar space-y-4">
-                    <h3 className="text-sm font-semibold text-[#14B8A6] tracking-wide flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        Client location
-                    </h3>
-
-                    <button
-                        type="button"
-                        onClick={detectLocation}
-                        disabled={gpsLoading}
-                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0EA5E9]/20 border border-[#0EA5E9]/40 text-[#0EA5E9] font-medium hover:bg-[#0EA5E9]/30 transition-colors"
-                    >
-                        {gpsLoading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                Detecting Location...
-                            </>
-                        ) : (
-                            <>
-                                <Navigation className="w-5 h-5" />
-                                Auto-Detect GPS Location
-                            </>
-                        )}
-                    </button>
-
-                    {formData.locationName && (
-                        <div className="p-3 rounded-lg bg-[#14B8A6]/10 border border-[#14B8A6]/30">
-                            <p className="text-sm text-[#14B8A6] font-medium">{formData.locationName}</p>
-                            <p className="text-xs text-slate-400 mt-1">
-                                {formData.latitude}, {formData.longitude}
-                            </p>
-                        </div>
-                    )}
-                </section>
-
-                {/* Extracted Fields with Confidence */}
-                <section className="card-cedar space-y-4">
-                    <h3 className="text-sm font-semibold text-[#14B8A6] tracking-wide flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
-                        Extracted information
-                    </h3>
-
-                    {/* Client Name */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-slate-300">Client Name</label>
-                            {confidence.clientName && (
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${getConfidenceColor('clientName')}`}>
-                                    {confidence.clientName}
-                                </span>
-                            )}
-                        </div>
-                        <input
-                            type="text"
-                            name="clientName"
-                            value={formData.clientName}
-                            onChange={handleChange}
-                            placeholder="Enter client name"
-                        />
-                    </div>
-
-                    {/* Client Age */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-slate-300">Client Age</label>
-                            {confidence.clientAge && (
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${getConfidenceColor('clientAge')}`}>
-                                    {confidence.clientAge}
-                                </span>
-                            )}
-                        </div>
-                        <input
-                            type="number"
-                            name="clientAge"
-                            value={formData.clientAge}
-                            onChange={handleChange}
-                            placeholder="Age"
-                            min="18"
-                            max="100"
-                            required
-                        />
-                    </div>
-
-                    {/* Loan Amount */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-slate-300">Loan Amount (USD)</label>
-                            {confidence.loanAmount && (
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${getConfidenceColor('loanAmount')}`}>
-                                    {confidence.loanAmount}
-                                </span>
-                            )}
-                        </div>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">$</span>
-                            <input
-                                type="number"
-                                name="loanAmount"
-                                value={formData.loanAmount}
-                                onChange={handleChange}
-                                placeholder="Enter amount"
-                                min="50"
-                                max="50000"
-                                required
-                                className="pl-10"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Loan Purpose */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-slate-300">Loan Purpose</label>
-                            {confidence.projectType && (
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${getConfidenceColor('projectType')}`}>
-                                    {confidence.projectType}
-                                </span>
-                            )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            {loanPurposes.map(purpose => (
-                                <button
-                                    key={purpose.id}
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, loanPurpose: purpose.id }))}
-                                    className={`p-3 rounded-xl border-2 text-left transition-colors ${formData.loanPurpose === purpose.id
-                                        ? 'border-[#14B8A6] bg-[#14B8A6]/15'
-                                        : 'border-white/10 bg-white/5 hover:border-white/15'
-                                        }`}
-                                >
-                                    <span className="text-xl">{purpose.icon}</span>
-                                    <p className="text-sm font-medium text-slate-200 mt-1">{purpose.name}</p>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Existing Loans */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-slate-300">Existing Loans</label>
-                            </div>
-                            <input
-                                type="number"
-                                name="existingLoans"
-                                value={formData.existingLoans}
-                                onChange={handleChange}
-                                min="0"
-                                max="10"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-slate-300">Monthly Income</label>
-                            </div>
-                            <input
-                                type="number"
-                                name="monthlyIncome"
-                                value={formData.monthlyIncome}
-                                onChange={handleChange}
-                                placeholder="USD"
-                                min="0"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Repayment History */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                            Repayment History
-                            <span className="ml-2 text-teal-400 font-semibold">{formData.repaymentHistory}%</span>
-                        </label>
-                        <input
-                            type="range"
-                            name="repaymentHistory"
-                            value={formData.repaymentHistory}
-                            onChange={handleChange}
-                            min="0"
-                            max="100"
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#14B8A6]"
-                        />
-                    </div>
-                </section>
-
-                {/* Submit Button */}
-                <button
-                    type="submit"
-                    disabled={loading || !formData.latitude || !formData.loanPurpose}
-                    className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {loading ? (
-                        <>
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                            Analyzing climate risk...
-                        </>
-                    ) : (
-                        <>
-                            <Check className="w-6 h-6" />
-                            Confirm & assess risk
-                        </>
-                    )}
-                </button>
-            </form>
-        </div>
-    )
-
-    const renderManualForm = () => (
-        <main className="px-4 py-6">
-            <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto">
-                {/* Location Section */}
-                <section className="card-cedar space-y-4">
-                    <h3 className="text-sm font-semibold text-[#14B8A6] tracking-wide flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        Client location
-                    </h3>
-
-                    <button
-                        type="button"
-                        onClick={detectLocation}
-                        disabled={gpsLoading}
-                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0EA5E9]/20 border border-[#0EA5E9]/40 text-[#0EA5E9] font-medium hover:bg-[#0EA5E9]/30 transition-colors"
-                    >
-                        {gpsLoading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                Detecting Location...
-                            </>
-                        ) : (
-                            <>
-                                <Navigation className="w-5 h-5" />
-                                Auto-Detect GPS Location
-                            </>
-                        )}
-                    </button>
-
-                    {formData.locationName && (
-                        <div className="p-3 rounded-lg bg-[#14B8A6]/10 border border-[#14B8A6]/30 animate-fade-in-up">
-                            <p className="text-sm text-[#14B8A6] font-medium">{formData.locationName}</p>
-                            <p className="text-xs text-slate-400 mt-1">
-                                {formData.latitude}, {formData.longitude}
-                            </p>
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-xs font-medium text-slate-400 mb-1">Latitude</label>
-                            <input
-                                type="number"
-                                name="latitude"
-                                value={formData.latitude}
-                                onChange={handleChange}
-                                step="any"
-                                placeholder="-90 to 90"
-                                required
-                                className="text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-slate-400 mb-1">Longitude</label>
-                            <input
-                                type="number"
-                                name="longitude"
-                                value={formData.longitude}
-                                onChange={handleChange}
-                                step="any"
-                                placeholder="-180 to 180"
-                                required
-                                className="text-sm"
-                            />
-                        </div>
-                    </div>
-                </section>
-
-                {/* Loan Details Section */}
-                <section className="card-cedar space-y-4">
-                    <h3 className="text-sm font-semibold text-[#F59E0B] tracking-wide flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
-                        Loan details
-                    </h3>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Loan Amount (USD)</label>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">$</span>
-                            <input
-                                type="number"
-                                name="loanAmount"
-                                value={formData.loanAmount}
-                                onChange={handleChange}
-                                placeholder="Enter amount"
-                                min="50"
-                                max="50000"
-                                required
-                                className="pl-10"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">Loan Purpose</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            {loanPurposes.map(purpose => (
-                                <button
-                                    key={purpose.id}
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, loanPurpose: purpose.id }))}
-                                    className={`p-3 rounded-xl border-2 text-left transition-colors ${formData.loanPurpose === purpose.id
-                                        ? 'border-[#14B8A6] bg-[#14B8A6]/15'
-                                        : 'border-white/10 bg-white/5 hover:border-white/15'
-                                        }`}
-                                >
-                                    <span className="text-xl">{purpose.icon}</span>
-                                    <p className="text-sm font-medium text-slate-200 mt-1">{purpose.name}</p>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {formData.loanPurpose === 'agriculture' && (
-                        <div className="animate-fade-in-up">
-                            <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
-                                <Wheat className="w-4 h-4 text-[#F59E0B]" />
-                                Crop Type
-                            </label>
-                            <div className="relative">
-                                <select
-                                    name="cropType"
-                                    value={formData.cropType}
-                                    onChange={handleChange}
-                                    required
-                                    className="appearance-none"
-                                >
-                                    <option value="">Select crop type...</option>
-                                    {cropTypes.map(crop => (
-                                        <option key={crop.id} value={crop.id}>{crop.name}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-                            </div>
-                        </div>
-                    )}
-                </section>
-
-                {/* Client Info Section */}
-                <section className="card-cedar space-y-4">
-                    <h3 className="text-sm font-semibold text-slate-300 tracking-wide flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Client information
-                    </h3>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Client Age</label>
-                            <input
-                                type="number"
-                                name="clientAge"
-                                value={formData.clientAge}
-                                onChange={handleChange}
-                                placeholder="Age"
-                                min="18"
-                                max="100"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Existing Loans</label>
-                            <input
-                                type="number"
-                                name="existingLoans"
-                                value={formData.existingLoans}
-                                onChange={handleChange}
-                                min="0"
-                                max="10"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                            Repayment History
-                            <span className="ml-2 text-teal-400 font-semibold">{formData.repaymentHistory}%</span>
-                        </label>
-                        <input
-                            type="range"
-                            name="repaymentHistory"
-                            value={formData.repaymentHistory}
-                            onChange={handleChange}
-                            min="0"
-                            max="100"
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#14B8A6]"
-                        />
-                        <div className="flex justify-between text-xs text-slate-500 mt-1">
-                            <span>Poor</span>
-                            <span>Excellent</span>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Submit Button */}
-                <button
-                    type="submit"
-                    disabled={loading || !formData.latitude || !formData.loanPurpose}
-                    className="btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {loading ? (
-                        <>
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                            Analyzing climate risk...
-                        </>
-                    ) : (
-                        <>
-                            <FileCheck className="w-6 h-6" />
-                            Assess risk
-                        </>
-                    )}
-                </button>
-            </form>
-        </main>
-    )
+    if (step === 'loading') {
+        return <LoadingAnimation onComplete={handleLoadingComplete} location={location} />
+    }
 
     return (
-        <div className="min-h-screen pb-24">
-            {/* Progress Bar - shown for all steps except mode-select */}
-            {step !== 'mode-select' && (
-                <ProgressBar
-                    currentStep={
-                        step === 'location-detect' ? 'location' :
-                            step === 'loading' ? 'data-entry' :
-                                (step === 'manual-form' || step === 'recording' || step === 'review') ? 'data-entry' :
-                                    'assessment'
-                    }
-                />
+        <div>
+            {/* Page header with step bar */}
+            <div className="mb-8">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <div className="label-instrument mb-1">NEW ASSESSMENT</div>
+                        <h1 className="text-xl tracking-tight" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#1A1A18' }}>
+                            {step === 'mode-select' ? 'Data Entry Method' : step === 'recording' ? 'AI Assistant' : step === 'review' ? 'Review & Submit' : 'Loan Application Data'}
+                        </h1>
+                    </div>
+                    {step !== 'mode-select' && (
+                        <button onClick={handleBack} className="btn-secondary text-xs py-2 px-4">
+                            <ChevronLeft className="w-3.5 h-3.5" /> Back
+                        </button>
+                    )}
+                </div>
+
+                {/* Step bar */}
+                <div className="step-bar">
+                    {stepNames.map((name, i) => (
+                        <div key={name} className={`step-bar-item ${i === stepIndex ? 'active' : i < stepIndex ? 'complete' : ''}`}>
+                            <div className="step-bar-dot">{i < stepIndex ? '✓' : i + 1}</div>
+                            <div className="step-bar-label">{name}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Mode selection */}
+            {step === 'mode-select' && (
+                <div className="grid grid-cols-2 gap-6 max-w-2xl">
+                    <button onClick={() => handleModeSelect('ai')} className="card-cedar text-left p-6 hover:border-[#0D7377] transition-colors group cursor-pointer">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style={{ background: 'rgba(13,115,119,0.1)' }}>
+                            <Sparkles className="w-5 h-5" style={{ color: '#0D7377' }} />
+                        </div>
+                        <h3 className="text-sm font-semibold mb-1" style={{ color: '#1A1A18' }}>AI Assistant</h3>
+                        <p className="text-xs leading-relaxed mb-3" style={{ color: '#6B6B5A' }}>
+                            Record conversation → AI transcribes and extracts loan data automatically.
+                        </p>
+                        <div className="label-instrument flex items-center gap-1">
+                            <span style={{ color: '#0D7377' }}>RECOMMENDED</span>
+                        </div>
+                    </button>
+
+                    <button onClick={() => handleModeSelect('manual')} className="card-cedar text-left p-6 hover:border-[#0D7377] transition-colors group cursor-pointer">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style={{ background: 'rgba(74,74,63,0.08)' }}>
+                            <PenLine className="w-5 h-5" style={{ color: '#4A4A3F' }} />
+                        </div>
+                        <h3 className="text-sm font-semibold mb-1" style={{ color: '#1A1A18' }}>Manual Entry</h3>
+                        <p className="text-xs leading-relaxed mb-3" style={{ color: '#6B6B5A' }}>
+                            Fill out the assessment form manually with client data.
+                        </p>
+                        <div className="label-instrument">FULL CONTROL</div>
+                    </button>
+                </div>
             )}
 
-            {/* Regular header for mode-select and data entry steps */}
-            {renderInFlowBar()}
+            {/* Recording mode */}
+            {step === 'recording' && (
+                <div className="max-w-2xl space-y-6">
+                    <div className="card-cedar text-center py-10">
+                        <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 transition-all ${isRecording ? 'bg-[#C0392B] animate-pulse' : 'bg-[#0D7377]'}`}>
+                            {isRecording ? <Mic className="w-8 h-8 text-white" /> : <MicOff className="w-8 h-8 text-white/80" />}
+                        </div>
+                        {!isRecording && !extracting && (
+                            <button type="button" onClick={startRecording} className="btn-primary">Start recording</button>
+                        )}
+                        {isRecording && (
+                            <button type="button" onClick={stopRecording} className="btn-primary" style={{ background: '#C0392B' }}>
+                                <Square className="w-4 h-4" /> Stop & extract
+                            </button>
+                        )}
+                        {extracting && (
+                            <div className="flex items-center justify-center gap-2" style={{ color: '#0D7377' }}>
+                                <Loader2 className="w-5 h-5 animate-spin" /> <span className="text-sm font-medium">Extracting…</span>
+                            </div>
+                        )}
+                    </div>
 
-            {step === 'mode-select' && renderModeSelection()}
-            {step === 'location-detect' && <LocationDetection onLocationConfirmed={handleLocationConfirmed} />}
-            {step === 'loading' && <LoadingAnimation onComplete={handleLoadingComplete} minimumDuration={6000} />}
-            {step === 'manual-form' && renderManualForm()}
-            {step === 'recording' && renderRecording()}
-            {step === 'review' && renderReview()}
+                    <div className="card-cedar">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="label-instrument">TRANSCRIPT</span>
+                            <span className="text-xs" style={{ color: '#9B9B8A', fontFamily: 'var(--font-mono)' }}>
+                                {transcript.length > 0 ? `${transcript.split(' ').length} words` : '0 words'}
+                            </span>
+                        </div>
+                        <textarea
+                            value={transcript}
+                            onChange={(e) => setTranscript(e.target.value)}
+                            placeholder="Speech will appear here, or type/paste your conversation…"
+                            className="input-cedar"
+                            style={{ minHeight: '160px', resize: 'vertical' }}
+                        />
+                    </div>
 
-            <div className="h-8"></div>
+                    {!isRecording && !extracting && transcript.trim().length > 0 && (
+                        <button type="button" onClick={extractDataFromTranscript} className="btn-primary w-full py-3">
+                            <Sparkles className="w-4 h-4" /> Extract data with AI
+                        </button>
+                    )}
+
+                    {extractionError && (
+                        <div className="p-3 rounded-md flex items-start gap-2 text-sm" style={{ background: 'rgba(192,57,43,0.06)', border: '1px solid rgba(192,57,43,0.15)', color: '#C0392B' }}>
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /> {extractionError}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Review mode (AI-extracted data) */}
+            {step === 'review' && (
+                <div className="max-w-2xl">
+                    <div className="p-4 rounded-md mb-6" style={{ background: 'rgba(13,115,119,0.06)', border: '1px solid rgba(13,115,119,0.15)' }}>
+                        <div className="flex items-center gap-2 mb-1">
+                            <Sparkles className="w-4 h-4" style={{ color: '#0D7377' }} />
+                            <span className="text-sm font-semibold" style={{ color: '#0D7377' }}>AI-extracted data ready</span>
+                        </div>
+                        <p className="text-xs" style={{ color: '#6B6B5A' }}>Review and edit before submitting.</p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* Location */}
+                        <div className="card-cedar space-y-4">
+                            <div className="label-instrument flex items-center gap-1.5"><MapPin className="w-3 h-3" /> LOCATION</div>
+                            <button type="button" onClick={detectLocation} disabled={gpsLoading} className="btn-secondary w-full py-2.5 text-xs">
+                                {gpsLoading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Detecting…</> : <><Navigation className="w-3.5 h-3.5" /> Auto-Detect GPS</>}
+                            </button>
+                            {formData.locationName && (
+                                <div className="p-3 rounded-md" style={{ background: 'rgba(13,115,119,0.06)', border: '1px solid rgba(13,115,119,0.1)' }}>
+                                    <div className="text-sm font-medium" style={{ color: '#0D7377' }}>{formData.locationName}</div>
+                                    <div className="text-xs mt-1" style={{ color: '#9B9B8A', fontFamily: 'var(--font-mono)' }}>
+                                        LAT {formData.latitude} · LON {formData.longitude}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Fields with confidence badges */}
+                        <div className="card-cedar space-y-4">
+                            <div className="label-instrument flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> EXTRACTED FIELDS</div>
+
+                            <Field label="CLIENT_NAME" name="clientName" value={formData.clientName} onChange={handleChange} confidence={confidence.clientName} getConfidenceBadge={getConfidenceBadge} />
+                            <Field label="CLIENT_AGE" name="clientAge" value={formData.clientAge} onChange={handleChange} type="number" min="18" max="100" required confidence={confidence.clientAge} getConfidenceBadge={getConfidenceBadge} />
+                            <Field label="LOAN_AMT" name="loanAmount" value={formData.loanAmount} onChange={handleChange} type="number" min="50" required prefix="$" confidence={confidence.loanAmount} getConfidenceBadge={getConfidenceBadge} />
+
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="label-instrument">LOAN_PURPOSE</span>
+                                    {confidence.projectType && <ConfidenceBadge {...getConfidenceBadge('projectType')} />}
+                                </div>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {loanPurposes.map(p => (
+                                        <button key={p.id} type="button" onClick={() => setFormData(prev => ({ ...prev, loanPurpose: p.id }))}
+                                            className={`p-2.5 rounded-md border text-center text-xs font-medium transition-colors cursor-pointer ${formData.loanPurpose === p.id ? 'border-[#0D7377] bg-[rgba(13,115,119,0.06)] text-[#0D7377]' : 'border-[#E0D9CF] text-[#4A4A3F] hover:border-[#C8BFB0]'
+                                                }`}>
+                                            <span className="text-lg block mb-1">{p.icon}</span>{p.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <Field label="EXISTING_LOANS" name="existingLoans" value={formData.existingLoans} onChange={handleChange} type="number" min="0" max="10" required />
+                                <Field label="MONTHLY_INC" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleChange} type="number" min="0" prefix="$" />
+                            </div>
+
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="label-instrument">REPAYMENT_HIST</span>
+                                    <span className="text-sm font-semibold" style={{ fontFamily: 'var(--font-mono)', color: '#0D7377' }}>{formData.repaymentHistory}%</span>
+                                </div>
+                                <input type="range" name="repaymentHistory" value={formData.repaymentHistory} onChange={handleChange} min="0" max="100"
+                                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer" style={{ background: '#E0D9CF', accentColor: '#0D7377' }} />
+                            </div>
+                        </div>
+
+                        <button type="submit" disabled={loading || !formData.latitude || !formData.loanPurpose} className="btn-terminal w-full py-3 justify-center disabled:opacity-50">
+                            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing…</> : <><span style={{ color: '#27AE60' }}>→</span> Run Risk Assessment</>}
+                        </button>
+                    </form>
+                </div>
+            )}
+
+            {/* Manual form */}
+            {step === 'manual-form' && (
+                <div className="max-w-2xl">
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* Location */}
+                        <div className="card-cedar space-y-4">
+                            <div className="label-instrument flex items-center gap-1.5"><MapPin className="w-3 h-3" /> LOCATION</div>
+                            <button type="button" onClick={detectLocation} disabled={gpsLoading} className="btn-secondary w-full py-2.5 text-xs">
+                                {gpsLoading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Detecting…</> : <><Navigation className="w-3.5 h-3.5" /> Auto-Detect GPS</>}
+                            </button>
+                            {formData.locationName && (
+                                <div className="p-3 rounded-md" style={{ background: 'rgba(13,115,119,0.06)', border: '1px solid rgba(13,115,119,0.1)' }}>
+                                    <div className="text-sm font-medium" style={{ color: '#0D7377' }}>{formData.locationName}</div>
+                                    <div className="text-xs mt-1" style={{ color: '#9B9B8A', fontFamily: 'var(--font-mono)' }}>
+                                        LAT {formData.latitude} · LON {formData.longitude}
+                                    </div>
+                                </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-3">
+                                <Field label="LAT" name="latitude" value={formData.latitude} onChange={handleChange} type="number" step="any" placeholder="-90 to 90" required />
+                                <Field label="LON" name="longitude" value={formData.longitude} onChange={handleChange} type="number" step="any" placeholder="-180 to 180" required />
+                            </div>
+                        </div>
+
+                        {/* Client */}
+                        <div className="card-cedar space-y-4">
+                            <div className="label-instrument flex items-center gap-1.5"><User className="w-3 h-3" /> CLIENT</div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Field label="CLIENT_NAME" name="clientName" value={formData.clientName} onChange={handleChange} placeholder="Full name" />
+                                <Field label="CLIENT_AGE" name="clientAge" value={formData.clientAge} onChange={handleChange} type="number" min="18" max="100" placeholder="Age" required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Field label="EXISTING_LOANS" name="existingLoans" value={formData.existingLoans} onChange={handleChange} type="number" min="0" max="10" required />
+                                <Field label="MONTHLY_INC" name="monthlyIncome" value={formData.monthlyIncome} onChange={handleChange} type="number" min="0" prefix="$" />
+                            </div>
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="label-instrument">REPAYMENT_HIST</span>
+                                    <span className="text-sm font-semibold" style={{ fontFamily: 'var(--font-mono)', color: '#0D7377' }}>{formData.repaymentHistory}%</span>
+                                </div>
+                                <input type="range" name="repaymentHistory" value={formData.repaymentHistory} onChange={handleChange} min="0" max="100"
+                                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer" style={{ background: '#E0D9CF', accentColor: '#0D7377' }} />
+                            </div>
+                        </div>
+
+                        {/* Loan details */}
+                        <div className="card-cedar space-y-4">
+                            <div className="label-instrument flex items-center gap-1.5"><DollarSign className="w-3 h-3" /> LOAN</div>
+                            <Field label="LOAN_AMT" name="loanAmount" value={formData.loanAmount} onChange={handleChange} type="number" min="50" max="50000" required prefix="$" />
+
+                            <div>
+                                <span className="label-instrument block mb-2">LOAN_PURPOSE</span>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {loanPurposes.map(p => (
+                                        <button key={p.id} type="button" onClick={() => setFormData(prev => ({ ...prev, loanPurpose: p.id }))}
+                                            className={`p-2.5 rounded-md border text-center text-xs font-medium transition-colors cursor-pointer ${formData.loanPurpose === p.id ? 'border-[#0D7377] bg-[rgba(13,115,119,0.06)] text-[#0D7377]' : 'border-[#E0D9CF] text-[#4A4A3F] hover:border-[#C8BFB0]'
+                                                }`}>
+                                            <span className="text-lg block mb-1">{p.icon}</span>{p.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {(formData.loanPurpose === 'agriculture') && (
+                                <div>
+                                    <span className="label-instrument block mb-2">CROP_TYPE</span>
+                                    <select name="cropType" value={formData.cropType} onChange={handleChange} className="input-cedar text-sm">
+                                        <option value="">Select crop type</option>
+                                        {cropTypes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+
+                        <button type="submit" disabled={loading || !formData.latitude || !formData.loanPurpose} className="btn-terminal w-full py-3 justify-center disabled:opacity-50">
+                            {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing…</> : <><span style={{ color: '#27AE60' }}>→</span> Run Risk Assessment</>}
+                        </button>
+                    </form>
+                </div>
+            )}
         </div>
+    )
+}
+
+// Reusable field component
+function Field({ label, name, value, onChange, type = 'text', placeholder, required, min, max, step, prefix, confidence, getConfidenceBadge }) {
+    return (
+        <div>
+            <div className="flex items-center justify-between mb-2">
+                <span className="label-instrument">{label}</span>
+                {confidence && getConfidenceBadge && <ConfidenceBadge {...getConfidenceBadge(name)} />}
+            </div>
+            <div className={prefix ? 'relative' : ''}>
+                {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#9B9B8A' }}>{prefix}</span>}
+                <input
+                    type={type} name={name} value={value} onChange={onChange}
+                    placeholder={placeholder} required={required} min={min} max={max} step={step}
+                    className="input-cedar text-sm"
+                    style={prefix ? { paddingLeft: '2rem' } : {}}
+                />
+            </div>
+        </div>
+    )
+}
+
+function ConfidenceBadge({ text, color, bg }) {
+    return (
+        <span className="text-[0.6rem] px-1.5 py-0.5 rounded font-medium" style={{ color, background: bg, fontFamily: 'var(--font-mono)' }}>
+            {text}
+        </span>
     )
 }

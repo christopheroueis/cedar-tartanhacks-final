@@ -1,0 +1,75 @@
+# Deploy Cedar App to Vercel as Demo Web App
+
+The Cedar app is a climate-informed microfinance lending platform (TartanHacks project). It has a React+Vite frontend and Express.js backend with in-memory demo data. The goal is to deploy it to Vercel via the GitHub repo `christopheroueis/cedar-tartanhacks-final`.
+
+## Key Observations
+
+- The backend uses **in-memory demo data** (no database needed) — perfect for serverless
+- The frontend already has **demo fallback logic** in [AuthContext.jsx](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/src/context/AuthContext.jsx), [NewAssessment.jsx](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/src/pages/NewAssessment.jsx), [RiskResults.jsx](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/src/pages/RiskResults.jsx), [Dashboard.jsx](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/src/pages/Dashboard.jsx), and [History.jsx](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/src/pages/History.jsx)
+- [NewAssessment.jsx](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/src/pages/NewAssessment.jsx) hardcodes `API_BASE = 'http://localhost:3001'` — must be fixed
+- The AI extraction endpoint (`/api/v2/ai/extract`) requires API keys (Claude/Groq) — will make it work with a mock fallback for demo
+- Dashboard and History pages generate their own mock data client-side
+
+## Proposed Changes
+
+### Backend → Vercel Serverless Functions
+
+Convert the Express.js backend into a single Vercel serverless function using `@vercel/node`.
+
+#### [NEW] [api/index.js](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/api/index.js)
+A single serverless function that wraps the existing Express app. Vercel will route all `/api/*` requests to this handler. This reuses all existing backend code (routes, services, config).
+
+---
+
+### Frontend Fixes
+
+#### [MODIFY] [NewAssessment.jsx](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/src/pages/NewAssessment.jsx)
+- Remove hardcoded `const API_BASE = 'http://localhost:3001'`
+- Use `import.meta.env.VITE_API_URL || ''` (empty string = same-origin, works on Vercel)
+
+#### [MODIFY] [api.js](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/src/services/api.js)
+- Change fallback from `'http://localhost:3001'` to `''` for production (same-origin)
+
+---
+
+### Project Configuration
+
+#### [NEW] [vercel.json](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/vercel.json)
+Configure Vercel to:
+- Build the Vite frontend from `frontend/`
+- Route `/api/*` to the serverless function
+- Route everything else to the SPA [index.html](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/frontend/index.html)
+
+#### [MODIFY] [app.js](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/backend/src/app.js)
+- Add CORS origin for Vercel preview/prod URLs
+- Export the Express app for serverless usage
+
+#### [MODIFY] [database.js](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/backend/src/config/database.js)
+- Force demo mode when `SUPABASE_URL` is missing (already works, just verify)
+
+#### [NEW] [package.json (root)](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/package.json)
+Root [package.json](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/backend/package.json) with build scripts for Vercel to install and build the frontend.
+
+---
+
+### AI Extraction Demo Fallback
+
+#### [MODIFY] [aiService.js](file:///Users/macintoshhd/Desktop/MENU/TartanHacks/cedars/backend/src/services/aiService.js)
+Add a demo fallback that returns mock extracted data when no AI API keys are configured, so the AI Assistant mode works in the demo without real API keys.
+
+## Verification Plan
+
+### Automated Tests
+1. **Build test**: Run `cd frontend && npm run build` — must succeed with zero errors
+2. **Backend start test**: Run `cd backend && node src/app.js` — must start on port 3001
+
+### Browser Testing (Local Demo)
+1. Start backend: `cd backend && npm run dev`
+2. Start frontend: `cd frontend && npm run dev`
+3. Open browser at `http://localhost:5178`
+4. **Flow**: Welcome → Login (officer1 / demo123 / Bangladesh) → New Assessment → Manual Entry → Location detect → Fill form → Submit → Risk Results
+5. **Flow**: Dashboard page → verify charts render
+6. **Flow**: History page → verify assessment list renders
+
+### Push to GitHub
+Run `git init && git remote add origin https://github.com/christopheroueis/cedar-tartanhacks-final.git && git push`

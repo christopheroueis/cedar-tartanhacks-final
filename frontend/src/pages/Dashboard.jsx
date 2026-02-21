@@ -1,258 +1,112 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import {
-    TrendingUp, TrendingDown, MapPin, Users,
-    FileCheck, AlertTriangle, RefreshCw, Download,
-    Building2, Globe
-} from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
+import { TrendingUp, DollarSign, BarChart3, Shield } from 'lucide-react'
+import { motion } from 'framer-motion'
 
-// Mock dashboard data
-const generateDashboardData = (mfiId) => {
-    const regions = {
-        'bangladesh-mfi': ['Sylhet', 'Dhaka', 'Chittagong', 'Khulna', 'Rajshahi'],
-        'kenya-mfi': ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'],
-        'peru-mfi': ['Lima', 'Cusco', 'Arequipa', 'Trujillo', 'Piura']
-    }
+const fadeIn = {
+    hidden: { opacity: 0, y: 8 },
+    visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.35, ease: [0.22, 1, 0.36, 1] } })
+}
 
-    const regionNames = regions[mfiId] || regions['bangladesh-mfi']
-
+function generateDashboardData() {
     return {
-        totalAssessments: 1247,
-        totalLoanVolume: 2340000,
-        avgRiskScore: 48,
-        riskTrend: -3.2,
-        highRiskLoans: 89,
-        portfolioByRisk: [
-            { name: 'Low Risk', value: 45, color: '#10b981' },
-            { name: 'Medium Risk', value: 38, color: '#f59e0b' },
-            { name: 'High Risk', value: 17, color: '#ef4444' }
+        stats: [
+            { label: 'TOTAL_ASSESSMENTS', value: '1,247', delta: '+12%', icon: BarChart3, color: '#0D7377' },
+            { label: 'LOAN_VOLUME', value: '$2.3M', delta: '+8%', icon: DollarSign, color: '#27AE60' },
+            { label: 'AVG_RISK', value: '48', delta: '-3%', icon: Shield, color: '#E67E22' },
+            { label: 'APPROVAL_RATE', value: '78%', delta: '+5%', icon: TrendingUp, color: '#0D7377' }
         ],
-        regionRisks: regionNames.map((region, i) => ({
-            region,
-            floodRisk: 0.2 + Math.random() * 0.5,
-            droughtRisk: 0.1 + Math.random() * 0.4,
-            assessments: Math.floor(100 + Math.random() * 200)
-        })),
-        recentHighRisk: [
-            { id: 'a1', client: 'Ahmed Hassan', amount: 1500, risk: 78, location: regionNames[0], date: '2h ago' },
-            { id: 'a2', client: 'Maria Santos', amount: 2200, risk: 72, location: regionNames[1], date: '5h ago' },
-            { id: 'a3', client: 'John Kimani', amount: 800, risk: 71, location: regionNames[2], date: '1d ago' }
+        riskDistribution: [
+            { name: 'Low Risk', value: 45, color: '#27AE60' },
+            { name: 'Moderate', value: 35, color: '#E67E22' },
+            { name: 'High Risk', value: 20, color: '#C0392B' }
         ],
-        monthlyTrend: [
-            { month: 'Sep', loans: 180, avgRisk: 52 },
-            { month: 'Oct', loans: 205, avgRisk: 48 },
-            { month: 'Nov', loans: 195, avgRisk: 45 },
-            { month: 'Dec', loans: 220, avgRisk: 51 },
-            { month: 'Jan', loans: 245, avgRisk: 47 },
-            { month: 'Feb', loans: 202, avgRisk: 44 }
+        monthlyAssessments: [
+            { month: 'Aug', count: 89, approved: 71 },
+            { month: 'Sep', count: 95, approved: 74 },
+            { month: 'Oct', count: 112, approved: 85 },
+            { month: 'Nov', count: 98, approved: 79 },
+            { month: 'Dec', count: 121, approved: 94 },
+            { month: 'Jan', count: 134, approved: 105 }
         ]
     }
 }
 
-function StatCard({ icon: Icon, label, value, subValue, trend, trendUp }) {
-    return (
-        <div className="card-cedar">
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-xs text-slate-400 tracking-wide">{label}</p>
-                    <p className="text-2xl font-bold text-white mt-1 font-mono-nums">{value}</p>
-                    {subValue && <p className="text-sm text-slate-400">{subValue}</p>}
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-[#14B8A6]/15 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-[#14B8A6]" />
-                </div>
-            </div>
-            {trend !== undefined && (
-                <div className={`flex items-center gap-1 mt-2 text-sm ${trendUp ? 'text-red-400' : 'text-[#10B981]'}`}>
-                    {trendUp ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    <span>{Math.abs(trend).toFixed(1)}% vs last month</span>
-                </div>
-            )}
-        </div>
-    )
-}
-
 export default function Dashboard() {
-    const { mfi, user } = useAuth()
-    const navigate = useNavigate()
+    const { mfi } = useAuth()
     const [data, setData] = useState(null)
-    const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        // In production, fetch from API
-        setTimeout(() => {
-            setData(generateDashboardData(mfi?.id))
-            setLoading(false)
-        }, 800)
-    }, [mfi?.id])
+    useEffect(() => { setData(generateDashboardData()) }, [])
 
-    if (loading) {
-        return (
-            <div className="min-h-[60vh] flex items-center justify-center px-4">
-                <div className="skeleton-cedar w-12 h-12 rounded-full" />
-            </div>
-        )
-    }
+    if (!data) return <div className="skeleton-cedar w-full h-48 mt-8" />
 
     return (
-        <div className="pb-8">
-            <main className="px-4 py-6 space-y-6">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                    <StatCard
-                        icon={FileCheck}
-                        label="Total Assessments"
-                        value={data.totalAssessments.toLocaleString()}
-                        subValue="This quarter"
-                    />
-                    <StatCard
-                        icon={Users}
-                        label="Loan Volume"
-                        value={`$${(data.totalLoanVolume / 1000000).toFixed(1)}M`}
-                        subValue="Active portfolio"
-                    />
-                    <StatCard
-                        icon={Globe}
-                        label="Avg. Climate Risk"
-                        value={data.avgRiskScore}
-                        trend={data.riskTrend}
-                        trendUp={data.riskTrend > 0}
-                    />
-                    <StatCard
-                        icon={AlertTriangle}
-                        label="High Risk Loans"
-                        value={data.highRiskLoans}
-                        subValue="Require monitoring"
-                    />
-                </div>
+        <motion.div initial="hidden" animate="visible">
+            <div className="mb-6">
+                <div className="label-instrument mb-1">DASHBOARD</div>
+                <h1 className="text-xl tracking-tight" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#1A1A18' }}>
+                    Portfolio Overview
+                </h1>
+            </div>
 
-                {/* Portfolio Risk Distribution */}
-                <div className="card-cedar">
-                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Portfolio risk distribution</h3>
-                    <div className="flex items-center gap-4">
-                        <div className="w-32 h-32">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={data.portfolioByRisk}
-                                        innerRadius={35}
-                                        outerRadius={55}
-                                        paddingAngle={2}
-                                        dataKey="value"
-                                    >
-                                        {data.portfolioByRisk.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                </PieChart>
-                            </ResponsiveContainer>
+            {/* Stats grid */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
+                {data.stats.map((stat, i) => (
+                    <motion.div key={stat.label} variants={fadeIn} custom={i} className="card-cedar">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="label-instrument">{stat.label}</span>
+                            <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
                         </div>
-                        <div className="flex-1 space-y-2">
-                            {data.portfolioByRisk.map((item, i) => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                                        <span className="text-sm text-slate-300">{item.name}</span>
-                                    </div>
-                                    <span className="text-sm font-medium text-white">{item.value}%</span>
-                                </div>
-                            ))}
+                        <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-mono)', color: '#1A1A18' }}>{stat.value}</div>
+                        <div className="text-xs mt-1" style={{ fontFamily: 'var(--font-mono)', color: stat.delta.startsWith('+') ? '#27AE60' : '#C0392B' }}>
+                            {stat.delta} vs last month
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                ))}
+            </div>
 
-                {/* Monthly Trend */}
-                <div className="card-cedar">
-                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Monthly assessments</h3>
-                    <div className="h-40">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data.monthlyTrend}>
-                                <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                                <YAxis stroke="#64748b" fontSize={12} />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#1e293b',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '8px'
-                                    }}
-                                />
-                                <Bar dataKey="loans" fill="#14B8A6" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+            {/* Charts */}
+            <div className="grid grid-cols-2 gap-5">
+                {/* Risk distribution */}
+                <motion.div variants={fadeIn} custom={4} className="card-cedar">
+                    <div className="label-instrument mb-4">RISK_DISTRIBUTION</div>
+                    <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                            <Pie data={data.riskDistribution} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value" stroke="none">
+                                {data.riskDistribution.map((entry, i) => (
+                                    <Cell key={i} fill={entry.color} />
+                                ))}
+                            </Pie>
+                            <Legend
+                                iconType="circle"
+                                iconSize={8}
+                                formatter={(value) => <span style={{ color: '#4A4A3F', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>{value}</span>}
+                            />
+                            <Tooltip
+                                contentStyle={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: '#fff', border: '1px solid #E0D9CF', borderRadius: '6px' }}
+                                formatter={(value) => [`${value}%`, '']}
+                            />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </motion.div>
 
-                {/* Regional Risk Heatmap */}
-                <div className="card-cedar">
-                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Regional climate risk</h3>
-                    <div className="space-y-3">
-                        {data.regionRisks.map((region, i) => (
-                            <div key={i} className="flex items-center gap-4">
-                                <div className="w-24 text-sm text-slate-300">{region.region}</div>
-                                <div className="flex-1">
-                                    <div className="h-6 bg-slate-700 rounded-lg overflow-hidden flex">
-                                        <div
-                                            className="h-full bg-blue-500"
-                                            style={{ width: `${region.floodRisk * 100}%` }}
-                                            title={`Flood: ${(region.floodRisk * 100).toFixed(0)}%`}
-                                        />
-                                        <div
-                                            className="h-full bg-orange-500"
-                                            style={{ width: `${region.droughtRisk * 100}%` }}
-                                            title={`Drought: ${(region.droughtRisk * 100).toFixed(0)}%`}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="text-xs text-slate-400 w-20 text-right">
-                                    {region.assessments} loans
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-700">
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                            <div className="w-3 h-3 rounded bg-blue-500" />
-                            <span>Flood Risk</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                            <div className="w-3 h-3 rounded bg-orange-500" />
-                            <span>Drought Risk</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* High Risk Loans */}
-                <div className="card-cedar">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-slate-400">High risk loans</h3>
-                        <Link to="/app/history" className="text-xs text-[#14B8A6] hover:text-[#14B8A6]/80">
-                            View all
-                        </Link>
-                    </div>
-                    <div className="space-y-3">
-                        {data.recentHighRisk.map((loan) => (
-                            <div
-                                key={loan.id}
-                                className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 transition-colors cursor-pointer"
-                            >
-                                <div>
-                                    <p className="text-sm font-medium text-white">{loan.client}</p>
-                                    <p className="text-xs text-slate-400 flex items-center gap-1">
-                                        <MapPin className="w-3 h-3" />
-                                        {loan.location} • ${loan.amount.toLocaleString()}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-lg font-bold text-red-400">{loan.risk}</div>
-                                    <p className="text-xs text-slate-500">{loan.date}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </main>
-        </div>
+                {/* Monthly assessments */}
+                <motion.div variants={fadeIn} custom={5} className="card-cedar">
+                    <div className="label-instrument mb-4">MONTHLY_ASSESSMENTS</div>
+                    <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={data.monthlyAssessments} barGap={2}>
+                            <XAxis dataKey="month" tick={{ fill: '#6B6B5A', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fill: '#6B6B5A', fontSize: 11, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} width={30} />
+                            <Tooltip
+                                contentStyle={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: '#fff', border: '1px solid #E0D9CF', borderRadius: '6px' }}
+                            />
+                            <Bar dataKey="count" fill="#E0D9CF" radius={[3, 3, 0, 0]} name="Total" />
+                            <Bar dataKey="approved" fill="#0D7377" radius={[3, 3, 0, 0]} name="Approved" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </motion.div>
+            </div>
+        </motion.div>
     )
 }

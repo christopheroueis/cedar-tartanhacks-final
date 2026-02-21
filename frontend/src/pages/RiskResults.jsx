@@ -3,181 +3,113 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { motion } from 'framer-motion'
 import {
-  CheckCircle,
-  AlertTriangle,
-  XCircle,
-  Shield,
-  Umbrella,
-  Thermometer,
-  Droplets,
-  TrendingDown,
-  MapPin,
-  DollarSign,
-  ChevronDown,
-  ChevronUp
+  CheckCircle, AlertTriangle, XCircle, Droplets, Thermometer,
+  MapPin, DollarSign, ChevronDown, ChevronUp, Download, ArrowLeft
 } from 'lucide-react'
 
-function RiskGauge({ score }) {
-  const rotation = (score / 100) * 180 - 90
+// Radial gauge component
+function RiskGauge({ score, size = 180 }) {
+  const radius = (size - 20) / 2
+  const circumference = Math.PI * radius
+  const dashOffset = circumference - (score / 100) * circumference
+
   const getColor = () => {
-    if (score <= 35) return { color: '#10B981', label: 'Low' }
-    if (score <= 65) return { color: '#F59E0B', label: 'Moderate' }
-    return { color: '#DC2626', label: 'High' }
+    if (score <= 35) return '#27AE60'
+    if (score <= 65) return '#E67E22'
+    return '#C0392B'
   }
-  const { color, label } = getColor()
+
+  const getLabel = () => {
+    if (score <= 35) return 'LOW RISK'
+    if (score <= 65) return 'MODERATE'
+    return 'HIGH RISK'
+  }
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-40 h-20">
-        <svg className="w-40 h-20" viewBox="0 0 200 100">
-          <path
-            d="M 15 100 A 85 85 0 0 1 185 100"
-            fill="none"
-            stroke="rgba(255,255,255,0.08)"
-            strokeWidth="10"
-            strokeLinecap="round"
-          />
-          <path
-            d="M 15 100 A 85 85 0 0 1 185 100"
-            fill="none"
-            stroke="url(#gaugeGrad)"
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeDasharray={`${(score / 100) * 267} 267`}
-          />
-          <defs>
-            <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#10B981" />
-              <stop offset="50%" stopColor="#F59E0B" />
-              <stop offset="100%" stopColor="#DC2626" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <div
-          className="absolute bottom-0 left-1/2 w-0.5 h-14 origin-bottom transition-transform duration-500"
+      <svg width={size} height={size / 2 + 30} viewBox={`0 0 ${size} ${size / 2 + 30}`}>
+        {/* Track */}
+        <path
+          d={`M 10 ${size / 2 + 10} A ${radius} ${radius} 0 0 1 ${size - 10} ${size / 2 + 10}`}
+          className="risk-gauge-track"
+        />
+        {/* Fill */}
+        <path
+          d={`M 10 ${size / 2 + 10} A ${radius} ${radius} 0 0 1 ${size - 10} ${size / 2 + 10}`}
+          className="risk-gauge-fill"
           style={{
-            transform: `translateX(-50%) rotate(${rotation}deg)`,
-            background: 'linear-gradient(to top, white, rgba(255,255,255,0.6))',
-            borderRadius: 2
+            stroke: getColor(),
+            strokeDasharray: circumference,
+            strokeDashoffset: dashOffset,
           }}
         />
-        <div className="absolute bottom-0 left-1/2 w-2.5 h-2.5 -translate-x-1/2 translate-y-1/2 bg-white rounded-full shadow-md" />
+        {/* Score text */}
+        <text x={size / 2} y={size / 2 - 5} textAnchor="middle" style={{ fontFamily: 'var(--font-mono)', fontSize: '2.2rem', fontWeight: 700, fill: '#1A1A18' }}>
+          {score}
+        </text>
+        <text x={size / 2} y={size / 2 + 18} textAnchor="middle" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 500, letterSpacing: '0.1em', fill: '#6B6B5A' }}>
+          / 100
+        </text>
+      </svg>
+      <div className="text-xs font-medium mt-1 px-3 py-1 rounded" style={{ fontFamily: 'var(--font-mono)', color: getColor(), background: `${getColor()}12`, letterSpacing: '0.06em' }}>
+        {getLabel()}
       </div>
-      <div className="mt-3 text-center">
-        <span className="text-3xl font-bold text-white font-mono-nums">{score}</span>
-        <span className="text-slate-400 text-lg font-mono-nums">/100</span>
-      </div>
-      <span
-        className="text-xs font-semibold mt-1 px-2.5 py-0.5 rounded-full"
-        style={{ backgroundColor: `${color}20`, color }}
-      >
-        {label} risk
-      </span>
     </div>
   )
 }
 
-function DefaultProbabilityBar({ baseline, adjusted }) {
-  const baselinePct = (baseline * 100).toFixed(0)
-  const adjustedPct = (adjusted * 100).toFixed(0)
-  const reduction = baseline > 0 ? ((baseline - adjusted) / baseline * 100).toFixed(0) : 0
+// Risk factor bar
+function RiskFactorBar({ label, value, icon: Icon }) {
+  const percent = Math.round(value * 100)
+  const getLevel = () => percent > 60 ? 'high' : percent > 35 ? 'medium' : 'low'
+  const getColor = () => percent > 60 ? '#C0392B' : percent > 35 ? '#E67E22' : '#27AE60'
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-400">Without climate data</span>
-        <span className="font-mono-nums text-red-400 font-medium">{baselinePct}%</span>
+    <div className="flex items-center gap-4 py-3" style={{ borderBottom: '1px solid #F0EBE2' }}>
+      <div className="w-8 h-8 rounded flex items-center justify-center shrink-0" style={{ background: `${getColor()}10` }}>
+        <Icon className="w-4 h-4" style={{ color: getColor() }} />
       </div>
-      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-        <div className="h-full bg-red-500/50 rounded-full" style={{ width: `${baselinePct}%` }} />
-      </div>
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-400">With climate data</span>
-        <span className="font-mono-nums text-[#14B8A6] font-medium">{adjustedPct}%</span>
-      </div>
-      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-        <div className="h-full bg-[#14B8A6] rounded-full" style={{ width: `${adjustedPct}%` }} />
-      </div>
-      {reduction > 0 && (
-        <div className="flex items-center gap-1.5 text-xs text-[#10B981]">
-          <TrendingDown className="w-3.5 h-3.5" />
-          <span>{reduction}% reduction with recommended modifications</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-medium" style={{ color: '#4A4A3F' }}>{label}</span>
+          <span className="text-xs font-semibold" style={{ fontFamily: 'var(--font-mono)', color: getColor() }}>{percent}%</span>
         </div>
-      )}
+        <div className="risk-bar-track">
+          <motion.div
+            className={`risk-bar-fill ${getLevel()}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${percent}%` }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Default probability bar
+function DefaultProbBar({ label, value, color }) {
+  return (
+    <div className="flex items-center gap-3 py-1.5">
+      <span className="text-xs w-28 shrink-0" style={{ color: '#6B6B5A' }}>{label}</span>
+      <div className="flex-1 risk-bar-track">
+        <motion.div className="risk-bar-fill" initial={{ width: 0 }} animate={{ width: `${value * 100}%` }} transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }} style={{ background: color }} />
+      </div>
+      <span className="text-xs font-semibold w-10 text-right" style={{ fontFamily: 'var(--font-mono)', color }}>{Math.round(value * 100)}%</span>
     </div>
   )
 }
 
 const recConfig = {
-  approve: {
-    icon: CheckCircle,
-    label: 'Approve',
-    sublabel: 'with climate-adaptive terms',
-    heroClass: 'recommendation-approve',
-    iconColor: 'text-[#10B981]'
-  },
-  caution: {
-    icon: AlertTriangle,
-    label: 'Caution',
-    sublabel: 'approve with enhanced monitoring',
-    heroClass: 'recommendation-caution',
-    iconColor: 'text-[#F59E0B]'
-  },
-  defer: {
-    icon: XCircle,
-    label: 'Defer',
-    sublabel: 'high climate risk — review required',
-    heroClass: 'recommendation-defer',
-    iconColor: 'text-[#DC2626]'
-  }
+  approve: { icon: CheckCircle, label: 'Approve', sublabel: 'with climate-adaptive terms', color: '#27AE60', bg: 'rgba(39,174,96,0.06)', border: '#27AE60' },
+  caution: { icon: AlertTriangle, label: 'Review', sublabel: 'additional safeguards recommended', color: '#E67E22', bg: 'rgba(230,126,34,0.06)', border: '#E67E22' },
+  defer: { icon: XCircle, label: 'Defer', sublabel: 'high climate risk — restructure required', color: '#C0392B', bg: 'rgba(192,57,43,0.06)', border: '#C0392B' }
 }
 
-const recDetails = {
-  approve: [
-    'Bundle flood insurance ($25)',
-    'Defer 1st payment to Nov',
-    'Extend term to 15 months'
-  ],
-  caution: [
-    'Mandatory crop insurance',
-    'Quarterly review during peak season',
-    'Consider 70% of requested amount'
-  ],
-  defer: [
-    'Request senior officer review',
-    'Explore alternative loan structure',
-    'Recommend client adaptation plan'
-  ]
-}
-
-function ClimateFactors({ factors }) {
-  const factorIcons = {
-    flood: { icon: Droplets, color: 'text-[#0EA5E9]' },
-    drought: { icon: Thermometer, color: 'text-orange-400' },
-    heatwave: { icon: Thermometer, color: 'text-red-400' },
-    insurance: { icon: Shield, color: 'text-[#14B8A6]' }
-  }
-  return (
-    <div className="space-y-2">
-      {factors.map((factor, i) => {
-        const config = factorIcons[factor.type] || factorIcons.flood
-        const Icon = config.icon
-        return (
-          <div key={i} className="flex items-center gap-3">
-            <Icon className={`w-4 h-4 ${config.color}`} />
-            <div className="flex-1">
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#10B981] via-[#F59E0B] to-[#DC2626]"
-                  style={{ width: `${factor.value * 100}%` }}
-                />
-              </div>
-            </div>
-            <span className="text-xs font-mono-nums text-slate-400 w-8 text-right">{(factor.value * 100).toFixed(0)}%</span>
-          </div>
-        )
-      })}
-    </div>
-  )
+const recActions = {
+  approve: ['Bundle flood insurance', 'Defer 1st payment to post-season', 'Extend term to 15 months'],
+  caution: ['Mandatory crop insurance', 'Quarterly review during peak season', 'Consider 70% of requested amount'],
+  defer: ['Request senior officer review', 'Explore alternative loan structure', 'Recommend client adaptation plan']
 }
 
 export default function RiskResults() {
@@ -186,7 +118,7 @@ export default function RiskResults() {
   const { mfi } = useAuth()
   const [assessment, setAssessment] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [expandAnalysis, setExpandAnalysis] = useState(false)
+  const [expandAnalysis, setExpandAnalysis] = useState(true)
 
   useEffect(() => {
     const data = sessionStorage.getItem(`assessment_${assessmentId}`)
@@ -203,12 +135,12 @@ export default function RiskResults() {
           defaultProbabilityAdjusted: parsedData.results.defaultProbability?.adjusted || 0.15,
           recommendationType: parsedData.recommendation.type,
           climateFactors: [
-            { type: 'flood', label: 'Flood Risk', value: parsedData.results.riskFactors?.flood?.value || 0.3 },
-            { type: 'drought', label: 'Drought Risk', value: parsedData.results.riskFactors?.drought?.value || 0.2 },
-            { type: 'heatwave', label: 'Heat Stress', value: parsedData.results.riskFactors?.heatwave?.value || 0.25 }
+            { type: 'flood', label: 'Flood Risk (Monsoon)', value: parsedData.results.riskFactors?.flood?.value || 0.3, icon: Droplets },
+            { type: 'drought', label: 'Drought Risk', value: parsedData.results.riskFactors?.drought?.value || 0.2, icon: Thermometer },
+            { type: 'heatwave', label: 'Heat Stress', value: parsedData.results.riskFactors?.heatwave?.value || 0.25, icon: Thermometer }
           ],
           products: parsedData.products || [
-            { name: 'Weather-Indexed Insurance', description: 'Automatic payout on adverse weather events' },
+            { name: 'Weather-Indexed Insurance', description: 'Automatic payout on adverse weather' },
             { name: 'Flexible Repayment', description: 'Grace period during high-risk seasons' }
           ],
           recommendation: parsedData.recommendation
@@ -234,9 +166,9 @@ export default function RiskResults() {
           defaultProbabilityAdjusted: adjustedDefault,
           recommendationType,
           climateFactors: [
-            { type: 'flood', label: 'Flood Risk (Monsoon)', value: 0.3 + Math.random() * 0.4 },
-            { type: 'drought', label: 'Drought Risk', value: 0.1 + Math.random() * 0.3 },
-            { type: 'heatwave', label: 'Heat Stress', value: 0.2 + Math.random() * 0.3 }
+            { type: 'flood', label: 'Flood Risk (Monsoon)', value: 0.3 + Math.random() * 0.4, icon: Droplets },
+            { type: 'drought', label: 'Drought Risk', value: 0.1 + Math.random() * 0.3, icon: Thermometer },
+            { type: 'heatwave', label: 'Heat Stress', value: 0.2 + Math.random() * 0.3, icon: Thermometer }
           ],
           products: [
             { name: 'Weather-Indexed Insurance', description: 'Automatic payout on adverse weather' },
@@ -250,160 +182,145 @@ export default function RiskResults() {
   }, [assessmentId])
 
   if (loading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="skeleton-cedar w-12 h-12 rounded-full" />
-      </div>
-    )
+    return <div className="flex items-center justify-center py-20"><div className="skeleton-cedar w-10 h-10 rounded-full" /></div>
   }
 
   if (!assessment) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6">
-        <XCircle className="w-14 h-14 text-red-400 mb-4" />
-        <h2 className="text-lg font-semibold text-white mb-2">Assessment not found</h2>
-        <p className="text-slate-400 text-sm mb-6">This assessment may have expired.</p>
-        <Link to="/app" className="btn-primary">
-          Start new assessment
-        </Link>
+      <div className="flex flex-col items-center justify-center py-20">
+        <XCircle className="w-12 h-12 mb-4" style={{ color: '#C0392B' }} />
+        <h2 className="text-lg font-semibold mb-2" style={{ color: '#1A1A18' }}>Assessment not found</h2>
+        <p className="text-sm mb-6" style={{ color: '#6B6B5A' }}>This assessment may have expired.</p>
+        <Link to="/app" className="btn-primary">New assessment</Link>
       </div>
     )
   }
 
   const config = recConfig[assessment.recommendationType]
   const Icon = config.icon
-  const actions = recDetails[assessment.recommendationType]
+  const actions = recActions[assessment.recommendationType]
+  const purposeLabels = { agriculture: 'Agriculture', livestock: 'Livestock', small_business: 'Small Business', housing: 'Housing' }
 
   return (
-    <div className="min-h-screen pb-28">
-      <main className="px-4 py-6 space-y-6 max-w-lg mx-auto">
-        {/* Hero recommendation */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className={`card-cedar ${config.heroClass} py-6`}
-        >
-          <div className="flex items-start gap-3">
-            <Icon className={`w-8 h-8 ${config.iconColor} shrink-0`} />
-            <div>
-              <p className="text-xs font-semibold text-slate-400 tracking-wide uppercase">Recommendation</p>
-              <h2 className="text-2xl font-semibold text-white mt-0.5">
-                {config.label}
-              </h2>
-              <p className="text-sm text-slate-400 mt-1">{config.sublabel}</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Key metrics — side by side */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.05 }}
-          className="grid grid-cols-2 gap-4"
-        >
-          <div className="card-cedar flex flex-col items-center justify-center py-5">
-            <p className="text-xs text-slate-400 mb-2">Climate risk</p>
-            <RiskGauge score={assessment.climateRiskScore} />
-          </div>
-          <div className="card-cedar py-5 px-4">
-            <p className="text-xs text-slate-400 mb-3">Default probability</p>
-            <DefaultProbabilityBar
-              baseline={assessment.defaultProbabilityBaseline}
-              adjusted={assessment.defaultProbabilityAdjusted}
-            />
-          </div>
-        </motion.div>
-
-        {/* Context line */}
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <MapPin className="w-4 h-4" />
-          <span>{assessment.locationName || 'Location'}</span>
-          <span className="mx-1">·</span>
-          <DollarSign className="w-4 h-4" />
-          <span>${parseFloat(assessment.loanAmount || 0).toLocaleString()}</span>
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <div className="label-instrument mb-1">RISK ASSESSMENT</div>
+          <h1 className="text-xl tracking-tight" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#1A1A18' }}>
+            Assessment Results
+          </h1>
         </div>
-
-        {/* Actions required */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="card-cedar"
-        >
-          <h3 className="text-sm font-semibold text-slate-300 mb-3">Actions required</h3>
-          <ul className="space-y-2">
-            {actions.map((action, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
-                <span className="w-5 h-5 rounded border border-white/20 flex items-center justify-center text-slate-500 text-xs">□</span>
-                {action}
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-
-        {/* Expandable: Climate breakdown + products */}
-        <div className="card-cedar">
-          <button
-            type="button"
-            onClick={() => setExpandAnalysis(!expandAnalysis)}
-            className="w-full flex items-center justify-between text-left"
-          >
-            <span className="text-sm font-semibold text-slate-300">
-              {expandAnalysis ? 'Hide' : 'View'} full analysis
-            </span>
-            {expandAnalysis ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+        <div className="flex gap-2">
+          <button onClick={() => navigate('/app')} className="btn-secondary text-xs py-2 px-4">
+            <ArrowLeft className="w-3.5 h-3.5" /> New
           </button>
-          {expandAnalysis && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4 pt-4 border-t border-white/5 space-y-4"
-            >
-              <div>
-                <h4 className="text-xs font-semibold text-slate-400 mb-2">Climate risk breakdown</h4>
-                <ClimateFactors factors={assessment.climateFactors} />
-              </div>
-              <div>
-                <h4 className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-1.5">
-                  <Umbrella className="w-3.5 h-3.5" />
-                  Recommended products
-                </h4>
-                <ul className="space-y-2">
-                  {assessment.products?.map((product, i) => (
-                    <li key={i} className="text-sm text-slate-300">
-                      <span className="font-medium text-white">{product.name}</span>
-                      <span className="text-slate-400"> — {product.description}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </main>
-
-      {/* Bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0f172a]/98 backdrop-blur-sm border-t border-white/5 safe-area-pb">
-        <div className="flex gap-3 max-w-lg mx-auto">
-          <button
-            type="button"
-            onClick={() => navigate('/app/history')}
-            className="btn-secondary flex-1"
-          >
-            Override
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/app/history')}
-            className="btn-primary flex-[2]"
-          >
-            Accept recommendation
+          <button className="btn-secondary text-xs py-2 px-4">
+            <Download className="w-3.5 h-3.5" /> Export
           </button>
         </div>
       </div>
+
+      {/* Three-panel layout */}
+      <div className="grid grid-cols-3 gap-5">
+
+        {/* LEFT — Property metadata */}
+        <div className="space-y-4">
+          <div className="card-cedar">
+            <div className="label-instrument mb-3">PROPERTY DATA</div>
+            <div className="space-y-3">
+              <DataRow label="LOCATION" value={assessment.locationName} />
+              <DataRow label="COORDINATES" value={`${assessment.latitude || '—'}, ${assessment.longitude || '—'}`} mono />
+              <DataRow label="LOAN_AMT" value={assessment.loanAmount ? `$${Number(assessment.loanAmount).toLocaleString()}` : '—'} mono />
+              <DataRow label="PURPOSE" value={purposeLabels[assessment.loanPurpose] || assessment.loanPurpose || '—'} />
+              {assessment.cropType && <DataRow label="CROP" value={assessment.cropType} />}
+            </div>
+          </div>
+
+          {/* Recommendation card */}
+          <div className="card-cedar" style={{ borderLeft: `3px solid ${config.border}`, background: config.bg }}>
+            <div className="flex items-start gap-3">
+              <Icon className="w-5 h-5 shrink-0 mt-0.5" style={{ color: config.color }} />
+              <div>
+                <div className="label-instrument mb-1">RECOMMENDATION</div>
+                <div className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)', color: config.color }}>{config.label}</div>
+                <p className="text-xs mt-1" style={{ color: '#6B6B5A' }}>{config.sublabel}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CENTER — Risk gauge */}
+        <div className="space-y-4">
+          <div className="card-cedar flex flex-col items-center py-6">
+            <div className="label-instrument mb-4">CLIMATE RISK SCORE</div>
+            <RiskGauge score={assessment.climateRiskScore} />
+          </div>
+
+          {/* Default probability */}
+          <div className="card-cedar">
+            <div className="label-instrument mb-3">DEFAULT PROBABILITY</div>
+            <DefaultProbBar label="Without climate" value={assessment.defaultProbabilityBaseline} color="#C0392B" />
+            <DefaultProbBar label="With climate adj." value={assessment.defaultProbabilityAdjusted} color="#0D7377" />
+            <div className="mt-3 text-xs px-2 py-1.5 rounded" style={{ background: 'rgba(13,115,119,0.06)', color: '#0D7377', fontFamily: 'var(--font-mono)' }}>
+              ↓ {Math.round((1 - assessment.defaultProbabilityAdjusted / assessment.defaultProbabilityBaseline) * 100)}% reduction with recommended modifications
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — Risk factors */}
+        <div className="space-y-4">
+          <div className="card-cedar">
+            <div className="label-instrument mb-3">RISK FACTORS</div>
+            {assessment.climateFactors.map((f, i) => (
+              <RiskFactorBar
+                key={f.type}
+                label={f.label}
+                value={f.value}
+                icon={f.icon || Droplets}
+              />
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="card-cedar">
+            <div className="label-instrument mb-3">REQUIRED ACTIONS</div>
+            <div className="space-y-2">
+              {actions.map((action, i) => (
+                <label key={i} className="flex items-start gap-2.5 py-1.5 text-sm cursor-pointer" style={{ color: '#4A4A3F' }}>
+                  <input type="checkbox" className="mt-0.5 accent-[#0D7377]" />
+                  {action}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Products */}
+          <div className="card-cedar">
+            <div className="label-instrument mb-3">SUGGESTED PRODUCTS</div>
+            <div className="space-y-2">
+              {assessment.products.map((p, i) => (
+                <div key={i} className="py-2" style={{ borderBottom: i < assessment.products.length - 1 ? '1px solid #F0EBE2' : 'none' }}>
+                  <div className="text-sm font-medium" style={{ color: '#1A1A18' }}>{p.name}</div>
+                  <div className="text-xs" style={{ color: '#9B9B8A' }}>{p.description}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DataRow({ label, value, mono }) {
+  return (
+    <div className="flex items-start justify-between py-1.5" style={{ borderBottom: '1px solid #F0EBE2' }}>
+      <span className="label-instrument shrink-0">{label}</span>
+      <span className={`text-sm text-right ${mono ? '' : ''}`}
+        style={{ color: '#1A1A18', fontFamily: mono ? 'var(--font-mono)' : 'var(--font-sans)', maxWidth: '60%', wordBreak: 'break-word' }}>
+        {value}
+      </span>
     </div>
   )
 }

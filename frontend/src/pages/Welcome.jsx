@@ -139,7 +139,7 @@ export default function Welcome() {
             <img
               src="/tartanhackslogo.png"
               alt="TartanHacks"
-              style={{ height: 32, opacity: 0.55, filter: 'brightness(0) invert(1)' }}
+              style={{ height: 72, opacity: 0.8, filter: 'brightness(0) invert(1)' }}
             />
           </motion.div>
         </motion.div>

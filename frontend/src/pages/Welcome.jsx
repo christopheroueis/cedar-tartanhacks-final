@@ -95,7 +95,8 @@ export default function Welcome() {
             onClick={() => navigate('/login')}
             className="btn-terminal"
             style={{
-              background: '#FFFFFF',
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(8px)',
               color: '#1A1A18',
               border: 'none',
               padding: '16px 48px',

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -6,16 +7,17 @@ import Welcome from './pages/Welcome'
 import About from './pages/About'
 import Privacy from './pages/Privacy'
 import Login from './pages/Login'
+import SmartAssessment from './pages/SmartAssessment'
 import NewAssessment from './pages/NewAssessment'
 import RiskResults from './pages/RiskResults'
 import Dashboard from './pages/Dashboard'
 import History from './pages/History'
 
-const transition = { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+const transition = { duration: 0.32, ease: [0.22, 1, 0.36, 1] }
 const pageVariants = {
-  initial: { opacity: 0, filter: 'blur(8px)' },
-  animate: { opacity: 1, filter: 'blur(0px)', transition },
-  exit: { opacity: 0, filter: 'blur(6px)', transition: { ...transition, duration: 0.25 } }
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition },
+  exit: { opacity: 0, y: -8, transition: { ...transition, duration: 0.2 } }
 }
 
 function PageTransition({ children, routeKey }) {
@@ -31,6 +33,21 @@ function PageTransition({ children, routeKey }) {
       {children}
     </motion.div>
   )
+}
+
+/* Thin progress bar at top during route changes */
+function NavProgressBar() {
+  const location = useLocation()
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    setShow(true)
+    const timer = setTimeout(() => setShow(false), 350)
+    return () => clearTimeout(timer)
+  }, [location.pathname])
+
+  if (!show) return null
+  return <div className="nav-progress-bar" />
 }
 
 function ProtectedRoute({ children }) {
@@ -77,7 +94,8 @@ function AnimatedSwitch() {
       <ProtectedRoute>
         <Routes location={location}>
           <Route path="/app" element={<AppLayout />}>
-            <Route index element={<NewAssessment />} />
+            <Route index element={<SmartAssessment />} />
+            <Route path="classic" element={<NewAssessment />} />
             <Route path="results/:assessmentId" element={<RiskResults />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="history" element={<History />} />
@@ -102,8 +120,8 @@ function App() {
   return (
     <AuthProvider>
       <div className="min-h-screen" style={{ background: '#F7F5F0' }}>
+        <NavProgressBar />
         <Routes>
-          {/* Root and all paths go through AnimatedSwitch so "/" always shows Welcome first */}
           <Route path="*" element={<AnimatedSwitch />} />
         </Routes>
       </div>

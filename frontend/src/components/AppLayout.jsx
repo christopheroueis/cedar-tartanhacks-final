@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
-  FilePlus2, BarChart3, Clock, LogOut, Leaf
+  FilePlus2, BarChart3, Clock, LogOut
 } from 'lucide-react'
 
 export default function AppLayout() {
@@ -26,9 +26,7 @@ export default function AppLayout() {
         {/* Brand */}
         <div className="px-6 mb-10">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded bg-[#0D7377] flex items-center justify-center">
-              <Leaf className="w-3.5 h-3.5 text-white" />
-            </div>
+            <img src="/cedarlogo.png" alt="Cedar" style={{ height: 28 }} />
             <span className="text-sm font-semibold tracking-wide" style={{ fontFamily: 'var(--font-display)', color: '#1A1A18' }}>
               CEDAR
             </span>

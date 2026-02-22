@@ -51,7 +51,7 @@ export default function Dashboard() {
             </div>
 
             {/* Stats grid */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {data.stats.map((stat, i) => (
                     <motion.div key={stat.label} variants={fadeIn} custom={i} className="card-cedar">
                         <div className="flex items-center justify-between mb-2">

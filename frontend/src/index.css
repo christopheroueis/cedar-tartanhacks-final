@@ -284,20 +284,23 @@ input[type="text"].mono-input {
    ========================================================================== */
 
 .skeleton-cedar {
-  background: linear-gradient(
-    90deg,
-    #E8E3DA 0%,
-    #F0EBE2 50%,
-    #E8E3DA 100%
-  );
+  background: linear-gradient(90deg,
+      #E8E3DA 0%,
+      #F0EBE2 50%,
+      #E8E3DA 100%);
   background-size: 200% 100%;
   animation: shimmer-cedar 1.5s ease-in-out infinite;
   border-radius: 4px;
 }
 
 @keyframes shimmer-cedar {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ==========================================================================
@@ -305,8 +308,15 @@ input[type="text"].mono-input {
    ========================================================================== */
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in-up {
@@ -314,11 +324,15 @@ input[type="text"].mono-input {
 }
 
 @keyframes fillBar {
-  from { width: 0; }
+  from {
+    width: 0;
+  }
 }
 
 @keyframes gaugeReveal {
-  from { stroke-dashoffset: var(--gauge-circumference); }
+  from {
+    stroke-dashoffset: var(--gauge-circumference);
+  }
 }
 
 /* ==========================================================================
@@ -348,7 +362,10 @@ input[type="text"].mono-input {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
@@ -555,6 +572,211 @@ input[type="text"].mono-input {
   transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.risk-bar-fill.low { background: #27AE60; }
-.risk-bar-fill.medium { background: #E67E22; }
-.risk-bar-fill.high { background: #C0392B; }
+.risk-bar-fill.low {
+  background: #27AE60;
+}
+
+.risk-bar-fill.medium {
+  background: #E67E22;
+}
+
+.risk-bar-fill.high {
+  background: #C0392B;
+}
+
+/* ==========================================================================
+   NAV PROGRESS BAR — route transitions
+   ========================================================================== */
+
+.nav-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #0D7377, #14918A);
+  z-index: 9999;
+  animation: navProgress 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes navProgress {
+  0% {
+    width: 0;
+  }
+
+  100% {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   VIDEO BACKGROUND — Welcome page
+   ========================================================================== */
+
+.video-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  z-index: 1;
+}
+
+/* ==========================================================================
+   AUTO-DETECTED FIELDS — Smart Assessment
+   ========================================================================== */
+
+.auto-detected-field {
+  background: #E8F7F7;
+  border: 1px solid rgba(13, 115, 119, 0.15);
+  border-radius: 6px;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+
+.auto-detected-field.editing {
+  background: #FFFFFF;
+  border-color: #E0D9CF;
+}
+
+.auto-detected-badge {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #0D7377;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.auto-detected-badge::before {
+  content: '●';
+  font-size: 0.5rem;
+}
+
+/* ==========================================================================
+   COLLAPSIBLE SECTIONS — Smart Assessment
+   ========================================================================== */
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid #E0D9CF;
+  transition: background 150ms ease;
+}
+
+.section-header:hover {
+  background: #FAF8F5;
+}
+
+.section-header-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6B6B5A;
+}
+
+.section-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #27AE60;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.section-body {
+  padding: 20px;
+  overflow: hidden;
+  transition: max-height 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
+}
+
+.section-body.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 20px;
+}
+
+/* ==========================================================================
+   SIDE PANEL — Smart Assessment
+   ========================================================================== */
+
+.smart-assessment-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .smart-assessment-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.side-panel {
+  position: sticky;
+  top: 32px;
+}
+
+.freshness-tag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: #9B9B8A;
+}
+
+/* ==========================================================================
+   PULSE GREEN — CTA activation
+   ========================================================================== */
+
+@keyframes pulseGreen {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 115, 119, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(13, 115, 119, 0);
+  }
+}
+
+.pulse-green {
+  animation: pulseGreen 2s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   RESPONSIVE — Dashboard + Assessment grids
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #E0D9CF;
+    padding: 12px 0;
+  }
+}
